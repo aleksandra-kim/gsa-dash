@@ -1,0 +1,130 @@
+/*.container {*/
+/*  position: relative;*/
+/*  width: 100%;*/
+/*  margin: 0 auto;*/
+/*  padding: 0 40px;*/
+/*  box-sizing: border-box;*/
+/*  text-align: center;*/
+/*}*/
+
+body {
+  background-color: #143956;
+  margin: 0;
+  color: white;
+}
+
+.header {
+  text-align: center;
+  color: #98def0;
+}
+
+.bw__setups {
+  display: flex;
+  justify-content: center;
+}
+
+/* General */
+.bw__select_option {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 8px;
+}
+
+.bw__field_name {
+  width: 20%;
+}
+
+.bw__field_menu {
+  width: 75%;
+}
+
+/*Project method*/
+.bw__options_project_method {
+  width: 30%;
+  background-color: #1a4c73;
+  margin: 10px;
+  box-sizing: border-box;
+}
+
+/*Functional unit*/
+.bw__func_unit {
+  width: 60%;
+  background-color: #1a4c73;
+  margin: 10px;
+  box-sizing: border-box;
+  /*display: flex;*/
+}
+
+.bw__func_unit_flex {
+  display: flex;
+  align-items: center;
+}
+
+.bw__options_func_unit_title {
+  width: 8%;
+  align-items: center;
+  justify-content: center;
+  margin: 8px;
+}
+
+.bw__options_database_funame {
+  width: 40%;
+  align-items: center;
+  justify-content: center;
+  margin: 8px;
+}
+
+.bw__options_location_amount {
+  width: 40%;
+  align-items: center;
+  justify-content: center;
+  margin: 8px;
+}
+
+.bw__input {
+  background-color: #143956;
+  color: white;
+  border-color: #143956;
+}
+
+/*.bw__dropdown {*/
+/*  background-color: red !important;*/
+/*  border-color: red;*/
+/*  color: white;*/
+/*}*/
+
+.Select-control {
+  background-color: #143956 !important;
+}
+.VirtualizedSelectOption {
+  background-color: #143956;
+  color: white;
+}
+.VirtualizedSelectFocusedOption {
+  background-color: #98def0;
+  color: white;
+}
+
+.Select-value-label {
+  color: white !important;
+}
+
+/*.setups__bw {*/
+/*  width: 30%;*/
+/*}*/
+
+/*.setups__bw__components {*/
+/*  display: flex;*/
+/*  justify-content: space-between;*/
+
+/*}*/
+
+/*.setups__bw__one_component {*/
+/*  width: 70%;*/
+/*}*/
+
+/*.app__subheader {*/
+/*  display: flex;*/
+/*  justify-content: space-between;*/
+/*}*/
