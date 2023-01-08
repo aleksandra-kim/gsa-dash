@@ -2,9 +2,30 @@ import numpy as np
 import plotly.graph_objects as go
 
 # Local files
-from .utils import read_json
+from .utils import read_json, update_figure_style
+from constants import DEFAULT_MC_ITERATIONS
 
 app_color = {"graph_bg": "#132b57", "graph_line": "#ff4595"}
+
+
+def plot_mc_simulations_init(score, iterations=DEFAULT_MC_ITERATIONS):
+    value = float(score[:7])
+    unit = score[10:]
+    fig = go.Figure()
+    fig.add_trace(
+        go.Scatter(
+            x=[value],
+            y=[0],
+            mode="markers",
+            marker=dict(symbol="x", size=20, color='red'),
+            name="Deterministic LCIA score",
+            showlegend=True
+        )
+    )
+    fig.update_xaxes(title=unit)
+    fig.update_yaxes(title="Frequency", range=[-int(0.1*iterations), int(0.5*iterations)])
+    fig = update_figure_style(fig)
+    return fig
 
 
 def plot_unct_distributions():

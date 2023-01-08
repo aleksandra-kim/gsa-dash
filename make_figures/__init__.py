@@ -1,2 +1,3 @@
-from .uncertainty_distributions import plot_unct_distributions
+from .uncertainty_distributions import plot_unct_distributions, plot_mc_simulations_init
 from .gsa_prioritized_list import get_prioritized_list, generate_table
+from .utils import update_figure_style
