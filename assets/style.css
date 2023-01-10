@@ -97,7 +97,7 @@ body {
   border-color: #143956;
 }
 
-.button {
+/*.button {
   background-color: #1a4c73;
   border: black;
   color: white;
@@ -108,11 +108,36 @@ body {
   font-size: 14px;
   margin: 8px;
 }
+*/
 
 .bw__mc_simulations {
   width: 30%;
   justify-content: center;
   justify: center;
+}
+
+/* Taken from https://nikitahl.com/progress-bar-css
+progress {
+  opacity: 0;
+}
+*/
+.progress-container {
+  position: relative;
+  display: inline-block;
+  background: #eee;
+  height: 20px;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 75%;
+  background: turquoise;
 }
 
 /*.bw__dropdown {*/
