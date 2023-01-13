@@ -1,1 +1,1 @@
-from .lca_calculations import compute_lcia_score, create_lca
+from .lca_calculations import compute_deterministic_score, create_lca, compute_gsa_results, write_json

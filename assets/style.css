@@ -111,7 +111,13 @@ body {
 */
 
 .bw__mc_simulations {
-  width: 30%;
+  width: 40%;
+  justify-content: center;
+  justify: center;
+}
+
+.bw__sensitivity_analysis {
+  width: 40%;
   justify-content: center;
   justify: center;
 }
@@ -138,6 +144,13 @@ progress {
   height: 100%;
   width: 75%;
   background: turquoise;
+}
+
+.bw__table_gsa_container {
+  width: 560px;
+  background-color: #143956;
+  color: white;
+  font-size: 12px;
 }
 
 /*.bw__dropdown {*/

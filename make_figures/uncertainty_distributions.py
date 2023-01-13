@@ -3,13 +3,13 @@ import plotly.graph_objects as go
 
 # Local files
 from .utils import get_figure_layout
-from constants import DEFAULT_MC_ITERATIONS
+from constants import DEFAULT_ITERATIONS
 
 app_color = {"graph_bg": "#132b57", "graph_line": "#ff4595"}
 opacity = 0.6
 
 
-def plot_mc_simulations(deterministic_score, unit, mc_scores=None, iterations=DEFAULT_MC_ITERATIONS):
+def plot_mc_simulations(deterministic_score, unit, mc_scores=None, iterations=DEFAULT_ITERATIONS):
     deterministic_score = float(deterministic_score)
     data = [
         dict(
