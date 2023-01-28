@@ -1,195 +1,36 @@
-/*.container {*/
-/*  position: relative;*/
-/*  width: 100%;*/
-/*  margin: 0 auto;*/
-/*  padding: 0 40px;*/
-/*  box-sizing: border-box;*/
-/*  text-align: center;*/
-/*}*/
-
-body {
-  background-color: #143956;
-  margin: 0;
-  color: white;
-}
-
-.header {
-  text-align: center;
-  color: #98def0;
-}
-
-.bw__setups {
+.main-container {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+  width: 100vw;
+  height: 100vh;
 }
 
-/* General */
-.bw__select_option {
+.column-contents {
+  flex-grow: 1;
+}
+
+.row-setup {
+  height: 15%;
+  min-height: 140px;
+  background-color: #F8F4D2;
+  opacity: 0.4;
+  border-bottom: 2px solid #ddd;
+  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  border-radius: 0px 6px 0px 0px;
+}
+
+.column-navigation {
+  min-width: 180px;
+  background-color: #771F5E;
+  opacity: 0.9;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 8px;
+  align-content: center;
 }
 
-.bw__field_name {
-  width: 20%;
-}
-
-.bw__field_menu {
-  width: 75%;
-}
-
-.bw__field_score {
-  width: 15%;
-  margin: 4px;
-}
-
-.bw__field_unit {
-  width: 60%;
-}
-
-/*Project method*/
-.bw__options_project_method {
-  width: 30%;
-  background-color: #1a4c73;
-  margin: 10px;
-  box-sizing: border-box;
-}
-
-/*Functional unit*/
-.bw__func_unit {
-  width: 60%;
-  background-color: #1a4c73;
-  margin: 10px;
-  box-sizing: border-box;
-  /*display: flex;*/
-}
-
-.bw__func_unit_flex {
+.navigation-contents {
+  width: 100%;
+  padding: 220px 0;
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  justify-content: space-around;
 }
-
-.bw__options_func_unit_title {
-  width: 8%;
-  align-items: center;
-  justify-content: center;
-  margin: 8px;
-}
-
-.bw__options_database_funame {
-  width: 40%;
-  align-items: center;
-  justify-content: center;
-  margin: 8px;
-}
-
-.bw__options_location_amount {
-  width: 40%;
-  align-items: center;
-  justify-content: center;
-  margin: 8px;
-}
-
-.bw__input {
-  background-color: #143956;
-  color: white;
-  border-color: #143956;
-}
-
-/*.button {
-  background-color: #1a4c73;
-  border: black;
-  color: white;
-  padding: 10px 18px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 14px;
-  margin: 8px;
-}
-*/
-
-.bw__mc_simulations {
-  width: 40%;
-  justify-content: center;
-  justify: center;
-}
-
-.bw__sensitivity_analysis {
-  width: 40%;
-  justify-content: center;
-  justify: center;
-}
-
-/* Taken from https://nikitahl.com/progress-bar-css
-progress {
-  opacity: 0;
-}
-*/
-.progress-container {
-  position: relative;
-  display: inline-block;
-  background: #eee;
-  height: 20px;
-  border-radius: 6px;
-  overflow: hidden;
-}
-
-.progress-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 75%;
-  background: turquoise;
-}
-
-.bw__table_gsa_container {
-  width: 560px;
-  background-color: #143956;
-  color: white;
-  font-size: 12px;
-}
-
-/*.bw__dropdown {*/
-/*  background-color: red !important;*/
-/*  border-color: red;*/
-/*  color: white;*/
-/*}*/
-
-.Select-control {
-  background-color: #143956 !important;
-}
-.VirtualizedSelectOption {
-  background-color: #143956;
-  color: white;
-}
-.VirtualizedSelectFocusedOption {
-  background-color: #98def0;
-  color: white;
-}
-
-.Select-value-label {
-  color: white !important;
-}
-
-/*.setups__bw {*/
-/*  width: 30%;*/
-/*}*/
-
-/*.setups__bw__components {*/
-/*  display: flex;*/
-/*  justify-content: space-between;*/
-
-/*}*/
-
-/*.setups__bw__one_component {*/
-/*  width: 70%;*/
-/*}*/
-
-/*.app__subheader {*/
-/*  display: flex;*/
-/*  justify-content: space-between;*/
-/*}*/

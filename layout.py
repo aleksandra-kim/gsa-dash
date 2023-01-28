@@ -2,6 +2,7 @@ import os
 from dash import dcc, html, DiskcacheManager, CeleryManager, dash_table
 from constants import DEFAULT_ITERATIONS, DEFAULT_SEED
 import bw2data as bd
+import dash_bootstrap_components as dbc
 
 
 def create_background_callback_manager():
@@ -10,7 +11,6 @@ def create_background_callback_manager():
         from celery import Celery
         celery_app = Celery(__name__, broker=os.environ['REDIS_URL'], backend=os.environ['REDIS_URL'])
         background_callback_manager = CeleryManager(celery_app)
-
     else:
         # Diskcache for non-production apps when developing locally
         import diskcache
@@ -46,54 +46,77 @@ def get_lca_mc_config(state_or_input):
 
 
 def create_main_layout():
-    bw_projects = [el.name for el in bd.projects]
     layout = html.Div([
-        # Header
-        html.Div(html.H1("Dashboard: Global sensitivity analysis of life cycle assessment"), className="header",),
-        # BW setups
-        html.Div([
+        html.Span([
             html.Div([
-                html.Div([
-                    html.Span("Project", className="bw__field_name"),
-                    html.Span(dcc.Dropdown(bw_projects, id="project"), className="bw__field_menu"),
-                ], className="bw__select_option"),
-                html.Div([
-                    html.Span("Method", className="bw__field_name"),
-                    html.Span(dcc.Dropdown([], id="method"), className="bw__field_menu"),
-                ], className="bw__select_option"),
-            ], className="bw__options_project_method"),
-            html.Div([
-                html.Div([
-                    html.Div("Functional Unit (FU)", className="bw__options_func_unit_title"),
-                    html.Div([
-                        html.Div([
-                            html.Div("Database", className="bw__field_name"),
-                            html.Div(dcc.Dropdown([], id="database"), className="bw__field_menu"),
-                        ], className="bw__select_option"),
-                        html.Div([
-                            html.Div("Activity", className="bw__field_name"),
-                            html.Div(dcc.Dropdown([], id="activity"), className="bw__field_menu"),
-                        ], className="bw__select_option"),
-                    ], className="bw__options_database_funame"),
-                    html.Div([
-                        html.Div([
-                            html.Div("Amount", className="bw__field_name"),
-                            html.Div(dcc.Input(1, id="amount"), className="bw__field_menu"),
-                        ], className="bw__select_option"),
-                        html.Div([
-                            html.Div("LCIA score", className="bw__field_name"),
-                            html.Div(id="score", className="bw__field_score"),
-                            html.Div(id="method-unit", className="bw__field_unit"),
-                        ], className="bw__select_option"),
-                    ], className="bw__options_location_amount"),
-                ], className="bw__func_unit_flex",),
-            ], className="bw__func_unit"),
-        ], className="bw__setups",),
-        # MC simulations
-        html.Div(id="monte-carlo",),
-        html.Div(id="sensitivity-analysis",),
-    ])
+                html.Div(dbc.Button("Button", id="button-link1", n_clicks=0)),
+                html.Div(dbc.Button("Button", id="button-link2", n_clicks=0)),
+                html.Div(dbc.Button("Button", id="button-link3", n_clicks=0)),
+                html.Div(dbc.Button("Button", id="button-link4", n_clicks=0)),
+            ], className="navigation-contents"),
+        ], className="column-navigation"),
+        html.Span([
+            html.Div("row-setup", className="row-setup"),
+            html.Div("row-contents", className="row-contents"),
+        ], className="column-contents"),
+    ], className="main-container")
+
+    # dbc.Nav([
+    #             dbc.Button("Button", id="button-link1", n_clicks=0),
+    #             dbc.Button("Button", id="button-link2", n_clicks=0),
+    #         ], vertical="md"),
     return layout
+
+
+# def create_main_layout():
+#     bw_projects = [el.name for el in bd.projects]
+#     layout = html.Div([
+#         # Header
+#         html.Div(html.H1("Dashboard: Global sensitivity analysis of life cycle assessment"), className="header",),
+#         # BW setups
+#         html.Div([
+#             html.Div([
+#                 html.Div([
+#                     html.Span("Project", className="bw__field_name"),
+#                     html.Span(dcc.Dropdown(bw_projects, id="project"), className="bw__field_menu"),
+#                 ], className="bw__select_option"),
+#                 html.Div([
+#                     html.Span("Method", className="bw__field_name"),
+#                     html.Span(dcc.Dropdown([], id="method"), className="bw__field_menu"),
+#                 ], className="bw__select_option"),
+#             ], className="bw__options_project_method"),
+#             html.Div([
+#                 html.Div([
+#                     html.Div("Functional Unit (FU)", className="bw__options_func_unit_title"),
+#                     html.Div([
+#                         html.Div([
+#                             html.Div("Database", className="bw__field_name"),
+#                             html.Div(dcc.Dropdown([], id="database"), className="bw__field_menu"),
+#                         ], className="bw__select_option"),
+#                         html.Div([
+#                             html.Div("Activity", className="bw__field_name"),
+#                             html.Div(dcc.Dropdown([], id="activity"), className="bw__field_menu"),
+#                         ], className="bw__select_option"),
+#                     ], className="bw__options_database_funame"),
+#                     html.Div([
+#                         html.Div([
+#                             html.Div("Amount", className="bw__field_name"),
+#                             html.Div(dcc.Input(1, id="amount"), className="bw__field_menu"),
+#                         ], className="bw__select_option"),
+#                         html.Div([
+#                             html.Div("LCIA score", className="bw__field_name"),
+#                             html.Div(id="score", className="bw__field_score"),
+#                             html.Div(id="method-unit", className="bw__field_unit"),
+#                         ], className="bw__select_option"),
+#                     ], className="bw__options_location_amount"),
+#                 ], className="bw__func_unit_flex",),
+#             ], className="bw__func_unit"),
+#         ], className="bw__setups",),
+#         # MC simulations
+#         html.Div(id="monte-carlo",),
+#         html.Div(id="sensitivity-analysis",),
+#     ])
+#     return layout
 
 
 def create_mc_section(fig):
