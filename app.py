@@ -22,6 +22,9 @@ from make_figures import plot_mc_simulations
 from utils import prepare_base_directory, collect_mc_scores, get_mc_scores_files
 from constants import DEFAULT_CHUNKSIZE
 
+# TODO
+# 1. add unit to activity amount
+
 
 background_callback_manager = create_background_callback_manager()
 app = Dash(__name__, background_callback_manager=background_callback_manager, suppress_callback_exceptions=True,
@@ -29,47 +32,47 @@ app = Dash(__name__, background_callback_manager=background_callback_manager, su
 app.layout = create_main_layout()
 
 
-# @app.callback(
-#     Output('method', 'options'),
-#     Output('database', 'options'),
-#     Input('project', 'value'),
-# )
-# def define_methods_databases(project):
-#     if project is None:
-#         raise PreventUpdate
-#     bd.projects.set_current(project)
-#     # bw_methods = [str(m) for m in bd.methods if "superseded" not in str(m)]  # TODO uncomment in the end
-#     default_method = ('IPCC 2013', 'climate change', 'GWP 100a')
-#     methods = sorted([str(default_method)])
-#     return methods, sorted(list(bd.databases))
-#
-#
-# @app.callback(
-#     Output('activity', 'options'),
-#     Input('project', 'value'),
-#     Input('database', 'value'),
-# )
-# def define_activities(project, database):
-#     if project is None:
-#         raise PreventUpdate
-#     bd.projects.set_current(project)
-#     db = bd.Database(database)
-#     activities = [f"{act['name']}, {act['location']}" for act in db]
-#     return sorted(activities)
-#
-#
-# @app.callback(
-#     Output("score", "children"),
-#     Output("method-unit", "children"),
-#     inputs=get_lca_config(Input),
-# )
-# def compute_deterministic_score_wrapper(project, database, method, activity, amount):
-#     if (project is None) or (database is None) or (method is None) or (activity is None):
-#         raise PreventUpdate
-#     score, unit = compute_deterministic_score(
-#         project, database, method, activity, amount, use_distributions=False, seed=None
-#     )
-#     return f"{score:7.3f}", unit
+@app.callback(
+    Output('method', 'options'),
+    Output('database', 'options'),
+    Input('project', 'value'),
+)
+def get_methods_databases(project):
+    if project is None:
+        raise PreventUpdate
+    bd.projects.set_current(project)
+    # methods = [", ".join(m) for m in bd.methods if "superseded" not in str(m)]  # TODO uncomment in the end
+    methods = [", ".join(('IPCC 2013', 'climate change', 'GWP 100a'))]
+    return sorted(methods), sorted(list(bd.databases))
+
+
+@app.callback(
+    Output('activity', 'options'),
+    Input('project', 'value'),
+    Input('database', 'value'),
+)
+def get_activities(project, database):
+    if project is None:
+        raise PreventUpdate
+    bd.projects.set_current(project)
+    db = bd.Database(database)
+    activities = [f"{act['name']}, {act['location']}" for act in db]
+    return sorted(activities)
+
+
+@app.callback(
+    Output("score", "children"),
+    Output("method-unit", "children"),
+    inputs=get_lca_config(Input),
+)
+def compute_deterministic_score_wrapper(project, database, method, activity, amount):
+    if (project is None) or (database is None) or (method is None) or (activity is None):
+        raise PreventUpdate
+    print(project, database, method, activity, amount)
+    score, unit = compute_deterministic_score(
+        project, database, method, activity, amount, use_distributions=False, seed=None
+    )
+    return f"{score:.3e}", unit
 #
 #
 # @app.callback(

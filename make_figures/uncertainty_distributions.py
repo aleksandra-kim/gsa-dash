@@ -2,11 +2,27 @@ import numpy as np
 import plotly.graph_objects as go
 
 # Local files
-from .utils import get_figure_layout
+from .utils import get_figure_layout_dark as get_figure_layout
 from constants import DEFAULT_ITERATIONS
 
 app_color = {"graph_bg": "#132b57", "graph_line": "#ff4595"}
 opacity = 0.6
+
+
+def plot_mc_simulations_base():
+    data = [
+        dict(
+            type="scatter",
+            mode="markers",
+            marker=dict(symbol="x", size=20, color='red'),
+            name="Deterministic LCIA score",
+            showlegend=True,
+        )
+    ]
+    layout = get_figure_layout()
+    layout["xaxis"]["title"].update(dict(text="LCIA scores"))
+    layout["yaxis"]["title"].update(dict(text="Frequency"))
+    return dict(data=data, layout=layout)
 
 
 def plot_mc_simulations(deterministic_score, unit, mc_scores=None, iterations=DEFAULT_ITERATIONS):

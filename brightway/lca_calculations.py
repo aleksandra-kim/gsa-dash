@@ -41,13 +41,13 @@ def prepare_lca(project, database, method, activity):
     fu = [act for act in db if fu_name == act['name'] and fu_location == act['location']]
     assert len(fu) == 1
     fu = fu[0]
-    bw_method = tuple(method.split("'")[1::2])
-    return fu, bw_method
+    method = tuple(method.split(", "))
+    return fu, method
 
 
 def create_lca(project, database, method, activity, amount, use_distributions, seed):
-    fu, bw_method = prepare_lca(project, database, method, activity)
-    lca = bc.LCA({fu: amount}, bw_method, use_distributions=use_distributions, seed_override=seed)
+    fu, method = prepare_lca(project, database, method, activity)
+    lca = bc.LCA({fu: amount}, method, use_distributions=use_distributions, seed_override=seed)
     lca.lci()
     lca.lcia()
     return lca
@@ -126,8 +126,8 @@ def find_background_databases():
     return dbs
 
 
-def get_dps_no_background_uncertainty(bw_method):
-    me = bd.Method(bw_method).datapackage()
+def get_dps_no_background_uncertainty(method):
+    me = bd.Method(method).datapackage()
     background = find_background_databases()
     dps = [me]
     for database in bd.databases:
@@ -138,8 +138,8 @@ def get_dps_no_background_uncertainty(bw_method):
     return dps
 
 
-def get_dps_no_foreground_background_uncertainty(bw_method):
-    me = bd.Method(bw_method).datapackage()
+def get_dps_no_foreground_background_uncertainty(method):
+    me = bd.Method(method).datapackage()
     bs = bd.Database("biosphere3").datapackage()
     dps = [me, bs]
     for database in bd.databases:
@@ -170,8 +170,8 @@ def run_mc_simulations_from_dp_X_all(directory, project, database, method, activ
 
 def run_mc_simulations_from_dp_X(project, database, method, activity, amount, iterations, seed):
     # Prepare input data
-    fu, bw_method = prepare_lca(project, database, method, activity)
-    dps_no_bg_unct = get_dps_no_background_uncertainty(bw_method)
+    fu, method = prepare_lca(project, database, method, activity)
+    dps_no_bg_unct = get_dps_no_background_uncertainty(method)
     lca_temp = bc.LCA(
         {fu.id: amount},
         data_objs=dps_no_bg_unct,
@@ -186,7 +186,7 @@ def run_mc_simulations_from_dp_X(project, database, method, activity, amount, it
     input_data = np.vstack([dp_tech.data[1], dp_bio.data[1]]).T.tolist()
     input_indices = np.hstack([dp_tech.data[0], dp_bio.data[0]])
     # Run Monte Carlo simulations
-    dps_no_fg_bg_unct = get_dps_no_foreground_background_uncertainty(bw_method)
+    dps_no_fg_bg_unct = get_dps_no_foreground_background_uncertainty(method)
     dps_gsa = dps_no_fg_bg_unct + [dp_tech, dp_bio]
     lca_gsa = bc.LCA(
         {fu.id: amount},

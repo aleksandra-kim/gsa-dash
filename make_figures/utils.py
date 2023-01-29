@@ -4,7 +4,71 @@ color_black_hex = "#212931"
 color_light_blue = "#98def0"
 
 
-def get_figure_layout():
+def get_figure_layout_dark():
+    grid_color = color_darkgray_hex
+    bordercolor = color_darkgray_hex
+    layout = dict(
+        xaxis=dict(
+            title=dict(
+                font=dict(
+                    size=12,
+                    color="black"
+                )
+            ),
+            tickfont=dict(
+                size=12,
+                color="black",
+            ),
+            tickfont_size=12,
+            tickfont_color="black",
+            showgrid=True,
+            gridwidth=1,
+            gridcolor=grid_color,
+            zeroline=True,
+            zerolinewidth=1,
+            zerolinecolor=grid_color,
+            showline=True,
+            linewidth=1,
+            linecolor=grid_color,
+
+        ),
+        yaxis=dict(
+            title=dict(
+                font=dict(
+                    size=12,
+                    color="black"
+                )
+            ),
+            tickfont=dict(
+                size=12,
+                color="black",
+            ),
+            showgrid=True,
+            gridwidth=1,
+            gridcolor=grid_color,
+            zeroline=True,
+            zerolinewidth=1,
+            zerolinecolor=grid_color,
+            showline=True,
+            linewidth=1,
+            linecolor=grid_color,
+        ),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        legend=dict(
+            font=dict(size=18, color="black"),
+            bgcolor="rgba(0,0,0,0)",
+            bordercolor=bordercolor,
+            borderwidth=0,
+            x=0.5, xanchor="center",
+            y=1.1, yanchor="bottom",
+        ),
+        margin=dict(t=0)
+    )
+    return layout
+
+
+def get_figure_layout_light():
     grid_color = color_light_blue
     bordercolor = color_darkgray_hex
     layout = dict(
