@@ -1,9 +1,8 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 import bw2data as bd
-from pathlib import Path
 
-import dash
+# Dash
 from dash import Dash, Input, Output, State
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
@@ -11,25 +10,30 @@ import dash_bootstrap_components as dbc
 # Local files
 from layout import (
     create_background_callback_manager,
-    get_lca_config, get_lca_mc_config,
-    create_main_layout, create_mc_section, create_gsa_section
+    create_layout,
+    get_lca_config,
+    get_mc_config,
+    get_lca_mc_config,
 )
 
-from brightway.lca_calculations import (
-    compute_deterministic_score, run_mc_simulations_from_dp_X_all, create_gsa_results_dataframe
+from backend.life_cycle_assessment import (
+    compute_deterministic_score
 )
 from make_figures import plot_mc_simulations
-from utils import prepare_base_directory, collect_mc_scores, get_mc_scores_files
-from constants import DEFAULT_CHUNKSIZE
+from backend.data import create_directory
+# from constants import ITERATIONS_CHUNKSIZE
 
 # TODO
 # 1. add unit to activity amount
+# 2. add default values for iterations, seed, amount, etc
 
-
-background_callback_manager = create_background_callback_manager()
-app = Dash(__name__, background_callback_manager=background_callback_manager, suppress_callback_exceptions=True,
-           external_stylesheets=[dbc.themes.PULSE])
-app.layout = create_main_layout()
+app = Dash(
+    __name__,
+    background_callback_manager=create_background_callback_manager(),
+    suppress_callback_exceptions=True,
+    external_stylesheets=[dbc.themes.PULSE]
+)
+app.layout = create_layout()
 
 
 @app.callback(
@@ -63,53 +67,67 @@ def get_activities(project, database):
 @app.callback(
     Output("score", "children"),
     Output("method-unit", "children"),
-    inputs=get_lca_config(Input),
+    inputs=dict(lca_config=get_lca_config(Input)),
 )
-def compute_deterministic_score_wrapper(project, database, method, activity, amount):
-    if (project is None) or (database is None) or (method is None) or (activity is None):
+def compute_deterministic_score_wrapper(lca_config):
+    project, database, activity, amount, method = lca_config.get("project"), lca_config.get("database"), \
+                                                  lca_config.get("activity"), lca_config.get("amount"), \
+                                                  lca_config.get("method")
+    if (project is None) or (database is None) or (activity is None) or (method is None):
         raise PreventUpdate
-    print(project, database, method, activity, amount)
     score, unit = compute_deterministic_score(
         project, database, method, activity, amount, use_distributions=False, seed=None
     )
     return f"{score:.3e}", unit
-#
-#
-# @app.callback(
-#     Output("monte-carlo", 'children'),
-#     Input("score", "children"),
-#     State("method-unit", "children"),
-# )
-# def display_simulations(score, unit):
-#     fig = plot_mc_simulations(score, unit)
-#     mc_section = create_mc_section(fig)
-#     return mc_section
-#
-#
-# @app.callback(
-#     Output("directory", "value"),
-#     inputs=dict(
-#         n_clicks=Input("mc-button", "n_clicks"),
-#         all_states=get_lca_mc_config(State),
-#     )
-#     # running=[
-#     #     (Output("button-mc-simulations", "disabled"), True, False),
-#     #     (Output("button-cancel-mc-simulations", "disabled"), False, True),
-#     # ],
-#     # cancel=Input("button-cancel-mc-simulations", "n_clicks"),
-#     # background=True,
-# )
-# def create_directory(n_clicks, all_states):
-#     if n_clicks == 0:
-#         raise PreventUpdate
-#     project, database, method, activity, amount, iterations, seed = all_states["project"], all_states["database"], \
-#         all_states["method"], all_states["activity"], all_states["amount"], all_states["iterations"], all_states["seed"]
-#     base_directory = prepare_base_directory(project, database, method, activity, amount)
-#     directory = base_directory / f"iterations{iterations}_seed{seed}"
-#     directory.mkdir(parents=True, exist_ok=True)
-#     return str(directory)
-#
-#
+
+
+@app.callback(
+    Output("mc-graph", 'figure'),
+    inputs=dict(
+        score=Input("score", "children"),
+        unit=State("method-unit", "children"),
+        mc_config=get_mc_config(State),
+    ),
+)
+def plot_simulations(score, unit, mc_config):
+    iterations, seed = mc_config.get("Iterations"), mc_config.get("seed")
+    fig = plot_mc_simulations(score, unit)
+    return fig
+
+
+@app.callback(
+    Output("directory", "data"),
+    inputs=dict(
+        n_clicks=Input("btn-start-mc", "n_clicks"),
+        lca_mc_config=get_lca_mc_config(State),
+    )
+)
+def create_directory_wrapper(n_clicks, lca_mc_config):
+    if n_clicks == 0:
+        raise PreventUpdate
+    iterations, seed = lca_mc_config.pop("iterations"), lca_mc_config.pop("seed")
+    directory = create_directory(lca_mc_config)
+    mc_directory = directory / f"iterations{iterations}_seed{seed}"
+    mc_directory.mkdir(parents=True, exist_ok=True)
+    return str(directory)
+
+
+@app.callback(
+    Output("mc-state", "data"),
+    inputs=dict(
+        n_clicks=Input("btn-start-mc", "n_clicks"),
+        lca_mc_config=get_lca_mc_config(State),
+
+    )
+)
+def run_simulations_wrapper(n_clicks, lca_mc_config):
+    if n_clicks == 0:
+        raise PreventUpdate
+    iterations, seed = lca_mc_config.get("iterations"), lca_mc_config.get("seed")
+
+    return True
+
+
 # @app.callback(
 #     Output("sensitivity-analysis", 'children'),
 #     Output("mc-completed", 'value'),
