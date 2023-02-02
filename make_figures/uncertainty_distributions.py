@@ -11,7 +11,6 @@ opacity = 0.6
 def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, iterations=ITERATIONS):
     data = []
     unit_str = ""
-
     if deterministic_score is not None:
         deterministic_score = float(deterministic_score)
         data.append(dict(
@@ -33,7 +32,7 @@ def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, ite
             type="bar",
             x=bins,
             y=freq,
-            name="Scores from MC simulations",
+            name="LCIA scores from MC simulations",
             showlegend=True,
             opacity=opacity,
         ))
@@ -42,6 +41,6 @@ def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, ite
     layout = get_figure_layout()
     layout["xaxis"]["title"].update(dict(text=f"LCIA scores{unit_str}"))
     layout["yaxis"]["title"].update(dict(text="Frequency"))
-    layout["yaxis"]["range"] = [-int(0.1*iterations), int(0.5*iterations)]
+    layout["yaxis"]["range"] = [-int(0.1*iterations), int(0.3*iterations)]
 
     return dict(data=data, layout=layout)

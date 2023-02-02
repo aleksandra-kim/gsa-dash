@@ -1,11 +1,12 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 import bw2data as bd
-
+import dash
 # Dash
-from dash import Dash, Input, Output, State
+from dash import Dash, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
+import time
 
 # Local files
 from layout import (
@@ -16,16 +17,16 @@ from layout import (
     get_lca_mc_config,
 )
 
-from backend.life_cycle_assessment import (
-    compute_deterministic_score
-)
+from backend.data import create_directory, collect_Y, get_Y_files, collect_XY, read_json
+from backend.life_cycle_assessment import compute_deterministic_score
+from backend.monte_carlo import run_simulations_from_X_all
+from backend.sensitivity_analysis import compute_model_linearity
 from make_figures import plot_mc_simulations
-from backend.data import create_directory
-# from constants import ITERATIONS_CHUNKSIZE
+
+from constants import ITERATIONS_CHUNKSIZE, INTERVAL_TIME
 
 # TODO
 # 1. add unit to activity amount
-# 2. add default values for iterations, seed, amount, etc
 
 app = Dash(
     __name__,
@@ -76,23 +77,61 @@ def compute_deterministic_score_wrapper(lca_config):
     if (project is None) or (database is None) or (activity is None) or (method is None):
         raise PreventUpdate
     score, unit = compute_deterministic_score(
-        project, database, method, activity, amount, use_distributions=False, seed=None
+        project, database, activity, amount, method, use_distributions=False, seed=None
     )
     return f"{score:.3e}", unit
 
 
+# @app.callback(
+#     Output("mc-state", "data"),
+#     Input("mc-progress-interval", "n_intervals"),
+#     State("directory", "data"),
+#     State("mc-state", "data"),
+# )
+# def check_mc_state(n_intervals, directory, mc_state):
+#     if directory is None:
+#         raise PreventUpdate
+#     files = get_scores_files(directory)
+#     updated_mc_state = len(files)
+#     print(mc_state, updated_mc_state)
+#     if mc_state != updated_mc_state:
+#         return updated_mc_state
+#     else:
+#         return dash.no_update
+
+
 @app.callback(
     Output("mc-graph", 'figure'),
+    Output("mc-progress", "value"),
+    Output("mc-progress", "label"),
+    Output("mc-state", "data"),
     inputs=dict(
+        n_intervals=Input("mc-progress-interval", "n_intervals"),
         score=Input("score", "children"),
+    ),
+    state=dict(
         unit=State("method-unit", "children"),
+        mc_finished=State("mc-finished", "data"),
+        mc_state=State("mc-state", "data"),
+        directory=State("directory", "data"),
         mc_config=get_mc_config(State),
     ),
 )
-def plot_simulations(score, unit, mc_config):
-    iterations, seed = mc_config.get("Iterations"), mc_config.get("seed")
-    fig = plot_mc_simulations(score, unit)
-    return fig
+def plot_simulations(n_intervals, score, unit, mc_finished, mc_state, directory, mc_config):
+    if score is None:
+        raise PreventUpdate
+    print(ctx.triggered_id)
+    if "score" == ctx.triggered_id:
+        fig = plot_mc_simulations(score, unit)
+        return fig, dash.no_update, dash.no_update, dash.no_update
+    Y_files = get_Y_files(directory)
+    if mc_finished or (len(Y_files) > mc_state):
+        Y_data = collect_Y(Y_files)
+        fig = plot_mc_simulations(score, unit, Y_data, mc_config["iterations"])
+        progress = len(Y_data) / mc_config['iterations'] * 100
+        return fig, progress, f"{progress:2.0f}", len(Y_files)
+    else:
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 @app.callback(
@@ -106,26 +145,56 @@ def create_directory_wrapper(n_clicks, lca_mc_config):
     if n_clicks == 0:
         raise PreventUpdate
     iterations, seed = lca_mc_config.pop("iterations"), lca_mc_config.pop("seed")
-    directory = create_directory(lca_mc_config)
-    mc_directory = directory / f"iterations{iterations}_seed{seed}"
-    mc_directory.mkdir(parents=True, exist_ok=True)
+    base_directory = create_directory(lca_mc_config)
+    directory = base_directory / f"iterations{iterations}_seed{seed}"
+    directory.mkdir(parents=True, exist_ok=True)
     return str(directory)
 
 
 @app.callback(
-    Output("mc-state", "data"),
+    Output("mc-finished", "data"),
     inputs=dict(
-        n_clicks=Input("btn-start-mc", "n_clicks"),
+        directory=Input("directory", "data"),
+        n_clicks=State("btn-start-mc", "n_clicks"),
         lca_mc_config=get_lca_mc_config(State),
-
     )
 )
-def run_simulations_wrapper(n_clicks, lca_mc_config):
-    if n_clicks == 0:
+def run_simulations_wrapper(directory, n_clicks, lca_mc_config):
+    if directory is None:
         raise PreventUpdate
-    iterations, seed = lca_mc_config.get("iterations"), lca_mc_config.get("seed")
-
+    run_simulations_from_X_all(directory, lca_mc_config, ITERATIONS_CHUNKSIZE)
     return True
+
+
+@app.callback(
+    Output('mc-progress-interval', 'max_intervals'),
+    Input("btn-start-mc", "n_clicks"),
+    Input("mc-finished", "data"),
+)
+def disable_mc_interval(n_clicks, mc_finished):
+    if mc_finished:
+        time.sleep(INTERVAL_TIME)
+        return None
+    if n_clicks > 0:
+        return 1e5
+
+
+@app.callback(
+    Output('linearity-graph', 'figure'),
+    Input('mc-progress-interval', 'n_intervals'),
+    State("mc-finished", "data"),
+    State("directory", "data")
+)
+def plot_sensitivity_results(n, mc_finished, directory):
+    if mc_finished:
+        X, Y = collect_XY(directory)
+        indices = read_json(directory / "indices.json")
+        linearity = compute_model_linearity(X, Y)
+        S = compute_sensitivity_indices(X, Y, linearity)
+        df = construct_gsa_dataframe(S, indices)
+        return
+    else:
+        return dash.no_update
 
 
 # @app.callback(
@@ -139,10 +208,10 @@ def run_simulations_wrapper(n_clicks, lca_mc_config):
 # def run_mc_simulations_wrapper(directory, all_states):
 #     if directory is None:
 #         raise PreventUpdate
-#     project, database, method, activity, amount, iterations, seed = all_states["project"], all_states["database"], \
+#     project, database, activity, amount, method, iterations, seed = all_states["project"], all_states["database"], \
 #         all_states["method"], all_states["activity"], all_states["amount"], all_states["iterations"], all_states["seed"]
 #     run_mc_simulations_from_dp_X_all(
-#         directory, project, database, method, activity, amount, iterations, seed, DEFAULT_CHUNKSIZE
+#         directory, project, database, activity, amount, method, iterations, seed, DEFAULT_CHUNKSIZE
 #     )
 #     df = create_gsa_results_dataframe(directory, project)
 #     gsa_section = create_gsa_section(df)

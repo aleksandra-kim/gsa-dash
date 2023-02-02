@@ -3,8 +3,8 @@ from dash import dcc, html, DiskcacheManager, CeleryManager
 # from constants import ITERATIONS, SEED
 import bw2data as bd
 import dash_bootstrap_components as dbc
-from make_figures import plot_mc_simulations
-from constants import ITERATIONS, SEED
+from make_figures import plot_mc_simulations, plot_model_linearity, plot_gsa_ranking, create_table_gsa_ranking
+from constants import ITERATIONS, SEED, INTERVAL_TIME
 
 
 def create_background_callback_manager():
@@ -65,8 +65,8 @@ def get_top_controls():
             html.Div([
                 html.Label("LCIA score", className="label"),
                 html.Div([
-                    html.Span("", id="score", className="score"),
-                    html.Span("", id="method-unit", className="method-unit")
+                    html.Span(id="score", className="score"),
+                    html.Span(id="method-unit", className="method-unit")
                 ], className="score-unit")
             ], className="output-lcia")
         ], className="top-controls-container"),
@@ -80,13 +80,17 @@ def get_tabs():
     tab3_content = get_tab_sensitivity_analysis()
     tab4_content = get_tab_gsa_validation()
     tab5_content = get_tab_summary()
-    tabs = dbc.Tabs([
-        dbc.Tab(tab1_content, className="tab-content", label="Motivation"),
-        dbc.Tab(tab2_content, className="tab-content", label="Uncertainty propagation"),
-        dbc.Tab(tab3_content, className="tab-content", label="Global sensitivity analysis"),
-        dbc.Tab(tab4_content, className="tab-content", label="GSA validation"),
-        dbc.Tab(tab5_content, className="tab-content", label="Summary"),
-    ], className="tabs-container")
+    tabs = dbc.Tabs(
+        active_tab="tab-propagation",
+        children=[
+            dbc.Tab(tab1_content, className="tab-content", label="Motivation"),
+            dbc.Tab(tab2_content, className="tab-content", label="Uncertainty propagation", tab_id="tab-propagation"),
+            dbc.Tab(tab3_content, className="tab-content", label="Global sensitivity analysis"),
+            dbc.Tab(tab4_content, className="tab-content", label="GSA validation"),
+            dbc.Tab(tab5_content, className="tab-content", label="Summary"),
+        ],
+        className="tabs-container"
+    )
     return tabs
 
 
@@ -147,6 +151,8 @@ def get_mc_controls():
                 dbc.Input(id="seed", value=SEED, type="number")
             ], className="control-random-seed"),
             dcc.Store(id="directory"),
+            dcc.Store(id="mc-state", data=0),
+            dcc.Store(id="mc-finished", data=False),
             dbc.Button("Start", id="btn-start-mc", n_clicks=0, outline=False, color="primary", className="btn-start-mc"),
             dbc.Button("Cancel", id="btn-cancel-mc", n_clicks=0, outline=False, color="warning", className="btn-cancel-mc"),
         ], className="mc-controls-container")
@@ -157,15 +163,38 @@ def get_mc_controls():
 def get_progress():
     progress = html.Div([
         html.Label("Progress:"),
-        dcc.Interval(id="mc-progress-interval", n_intervals=0, interval=500),
-        dbc.Progress(id="mc-progress", className="mc-progress", color="success"),
+        dcc.Interval(id="mc-progress-interval", n_intervals=0, interval=INTERVAL_TIME*1000),
+        dbc.Progress(id="mc-progress", className="mc-progress", value=0, label="0%"),
     ], className="mc-progress-container")
     return progress
 
 
 def get_tab_sensitivity_analysis():
+    fig_model_linearity = plot_model_linearity()
+    fig_gsa_ranking = plot_gsa_ranking()
+    table_gsa_ranking = create_table_gsa_ranking()
     tab = html.Div([
-        html.Div()
+        dbc.Row([
+            dbc.Col(html.Div([
+                html.H2("Global sensitivity analysis"),
+                html.P("In statistics, propagation of uncertainty (or propagation of error) is the effect of "
+                       "variables' uncertainties (or errors, more specifically random errors) on the uncertainty "
+                       "of a function based on them. When the variables are the values of experimental "
+                       "measurements they have uncertainties due to measurement limitations (e.g., instrument "
+                       "precision) which propagate due to the combination of variables in the function."),
+            ]), width=7, align="start"),
+            dbc.Col(html.Div([
+                html.H2("LCA model linearity"),
+                dcc.Graph(id='linearity-graph', figure=fig_model_linearity, className="linearity-graph"),
+            ]), width=4, align="start"),
+        ], justify="evenly", className="row-gsa"),
+        dbc.Col(html.H2("Influential model inputs, aka GSA results")),
+        dbc.Row([
+            dbc.Col(
+                # html.Table(id="ranking-table"),
+                dcc.Graph(id="ranking-graph", figure=fig_gsa_ranking, className="ranking-graph"),
+            )
+        ], justify="evenly")
     ], className="tab-sensitivity")
     return tab
 

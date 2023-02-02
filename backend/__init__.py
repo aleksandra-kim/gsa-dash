@@ -1,3 +1,3 @@
-from .data import create_directory
-from .life_cycle_assessment import create_lca, prepare_lca
-from .monte_carlo import run_mc_simulations
+from .data import create_directory, collect_Y, collect_XY
+from .life_cycle_assessment import create_lca, get_bw_activity_and_method
+from .monte_carlo import run_simulations_from_X_all

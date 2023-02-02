@@ -3,10 +3,47 @@ import bw2calc as bc
 import bw_processing as bwp
 import numpy as np
 from pathlib import Path
+import math
 
 # Local files
-from .utils import write_json, write_pickle
-from .life_cycle_assessment import prepare_lca, create_lca
+from .data import write_json, write_pickle
+from .life_cycle_assessment import get_bw_activity_and_method
+
+
+def run_simulations_from_X_chunk(project, database, activity, amount, method, iterations, seed):
+    # Prepare input data
+    bw_activity, bw_method = get_bw_activity_and_method(project, database, activity, method)
+    dps_no_bg_unct = get_dps_without_background_uncertainty(bw_method)
+    lca_temp = bc.LCA(
+        {bw_activity.id: amount},
+        data_objs=dps_no_bg_unct,
+        use_distributions=True,
+        seed_override=seed,
+    )
+    lca_temp.lci()
+    lca_temp.lcia()
+    dp_name = "no_background_uncertainty"
+    dp_tech = create_dp_X(lca_temp, iterations, "technosphere", dp_name, seed)
+    dp_bio = create_dp_X(lca_temp, iterations, "biosphere", dp_name, seed)
+    input_data = np.vstack([dp_tech.data[1], dp_bio.data[1]]).T.tolist()
+    input_indices = np.hstack([dp_tech.data[0], dp_bio.data[0]])
+    # Run Monte Carlo simulations
+    dps_no_fg_bg_unct = get_dps_without_foreground_background_uncertainty(bw_method)
+    dps_gsa = dps_no_fg_bg_unct + [dp_tech, dp_bio]
+    lca_gsa = bc.LCA(
+        {bw_activity.id: amount},
+        data_objs=dps_gsa,
+        use_distributions=False,
+        use_arrays=True,
+    )
+    lca_gsa.lci()
+    lca_gsa.lcia()
+    lca_gsa.keep_first_iteration()
+    mc_scores = []
+    for i in range(iterations):
+        next(lca_gsa)
+        mc_scores.append(lca_gsa.score)
+    return input_indices, input_data, mc_scores
 
 
 def create_dp_X(lca_obj, nsamples, matrix_type, name, seed):
@@ -97,68 +134,38 @@ def get_dps_without_foreground_background_uncertainty(method):
     return dps
 
 
-def run_mc_simulations_from_dp_X_all(directory, project, database, method, activity, amount, iterations, seed, chunksize):
+def run_simulations_from_X_all(directory, lca_mc_config, chunksize):
+    project, database, activity, amount, method, iterations, seed = lca_mc_config["project"], lca_mc_config["database"], \
+                                                                    lca_mc_config["activity"], lca_mc_config["amount"], \
+                                                                    lca_mc_config["method"], \
+                                                                    lca_mc_config["iterations"], lca_mc_config["seed"]
     directory = Path(directory)
     np.random.seed(seed)
-    n_chunks = iterations//chunksize+1
+    n_chunks = int(np.ceil(iterations/chunksize))
     chunk_seeds = np.random.randint(1, np.iinfo(np.int32).max, n_chunks)
     fpI = directory / f"indices.pickle"
     for i in range(n_chunks):
-        fpY = directory / f"Y{i}.json"
-        fpX = directory / f"X{i}.json"
-        if (not fpY.exists()) or (not fpX.exists()) or (not fpI.exists()):
-            input_indices, input_data, mc_scores = run_mc_simulations_from_dp_X(
-                project, database, method, activity, amount, chunksize, chunk_seeds[i]
+        fpY = directory / f"Y{i:03d}.json"  # TODO: 3 is the number of leading zeros in file names, at the moment hardcoded
+        fpX = directory / f"X{i:03d}.json"
+        if i == n_chunks - 1:
+            chunksize = int(min(chunksize, iterations - (n_chunks-1)*chunksize))
+        if (not fpY.exists()) or (not fpI.exists()):
+            input_indices, input_data, mc_scores = run_simulations_from_X_chunk(
+                project, database, activity, amount, method, chunksize, chunk_seeds[i]
             )
             write_json(mc_scores, fpY)
             write_json(input_data, fpX)
             write_pickle(input_indices, fpI)
 
 
-def run_mc_simulations_from_dp_X(project, database, method, activity, amount, iterations, seed):
-    # Prepare input data
-    fu, method = prepare_lca(project, database, method, activity)
-    dps_no_bg_unct = get_dps_without_background_uncertainty(method)
-    lca_temp = bc.LCA(
-        {fu.id: amount},
-        data_objs=dps_no_bg_unct,
-        use_distributions=True,
-        seed_override=seed,
-    )
-    lca_temp.lci()
-    lca_temp.lcia()
-    dp_name = "no_background_uncertainty"
-    dp_tech = create_dp_X(lca_temp, iterations, "technosphere", dp_name, seed)
-    dp_bio = create_dp_X(lca_temp, iterations, "biosphere", dp_name, seed)
-    input_data = np.vstack([dp_tech.data[1], dp_bio.data[1]]).T.tolist()
-    input_indices = np.hstack([dp_tech.data[0], dp_bio.data[0]])
-    # Run Monte Carlo simulations
-    dps_no_fg_bg_unct = get_dps_without_foreground_background_uncertainty(method)
-    dps_gsa = dps_no_fg_bg_unct + [dp_tech, dp_bio]
-    lca_gsa = bc.LCA(
-        {fu.id: amount},
-        data_objs=dps_gsa,
-        use_distributions=False,
-        use_arrays=True,
-    )
-    lca_gsa.lci()
-    lca_gsa.lcia()
-    lca_gsa.keep_first_iteration()
-    mc_scores = []
-    for i in range(iterations):
-        next(lca_gsa)
-        mc_scores.append(lca_gsa.score)
-    return input_indices, input_data, mc_scores
-
-
-def run_mc_simulations(directory, project, database, method, activity, amount, iterations, seed, chunksize):
-    directory = Path(directory)
-    bd.projects.set_current(project)
-    lca = create_lca(project, database, method, activity, amount, use_distributions=True, seed=seed)
-    lca.keep_first_iteration()
-    for i in range(iterations//chunksize+1):
-        mc_scores = []
-        for _ in range(chunksize):
-            next(lca)
-            mc_scores.append(lca.score)
-        write_json(mc_scores, directory / f"Y{i}.json")
+# def run_simulations_random(directory, project, database, activity, amount, method, iterations, seed, chunksize):
+#     directory = Path(directory)
+#     bd.projects.set_current(project)
+#     lca = create_lca(project, database, activity, amount, method, use_distributions=True, seed=seed)
+#     lca.keep_first_iteration()
+#     for i in range(iterations//chunksize+1):
+#         mc_scores = []
+#         for _ in range(chunksize):
+#             next(lca)
+#             mc_scores.append(lca.score)
+#         write_json(mc_scores, directory / f"Y{i}.json")
