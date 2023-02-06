@@ -1,3 +1,4 @@
+import numpy as np
 import json
 import pickle
 from pathlib import Path
@@ -67,11 +68,10 @@ def collect_XY(directory):
     Y_files = sorted([f for f in files if "Y" in f.name])
     Y, X = [], []
     for Y_file in Y_files:
-        print(Y_file)
         X_file = directory / Y_file.name.replace("Y", "X")
         assert X_file in files
         Y_data = read_json(directory / Y_file)
         X_data = read_json(directory / X_file)
         Y = Y + Y_data
         X = X + X_data
-    return X, Y
+    return np.array(X), np.array(Y)

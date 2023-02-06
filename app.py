@@ -1,8 +1,10 @@
 # Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 import bw2data as bd
-import dash
+from pathlib import Path
+
 # Dash
+import dash
 from dash import Dash, Input, Output, State, ctx
 from dash.exceptions import PreventUpdate
 import dash_bootstrap_components as dbc
@@ -17,13 +19,13 @@ from layout import (
     get_lca_mc_config,
 )
 
-from backend.data import create_directory, collect_Y, get_Y_files, collect_XY, read_json
+from backend.data import create_directory, collect_Y, get_Y_files, collect_XY, read_pickle
 from backend.life_cycle_assessment import compute_deterministic_score
 from backend.monte_carlo import run_simulations_from_X_all
-from backend.sensitivity_analysis import compute_model_linearity
-from make_figures import plot_mc_simulations
+from backend.sensitivity_analysis import compute_model_linearity, compute_sensitivity_indices, collect_sensitivity_results
+from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking
 
-from constants import ITERATIONS_CHUNKSIZE, INTERVAL_TIME
+from constants import ITERATIONS_CHUNKSIZE, INTERVAL_TIME, LINEARITY_THRESHOLD
 
 # TODO
 # 1. add unit to activity amount
@@ -120,7 +122,6 @@ def compute_deterministic_score_wrapper(lca_config):
 def plot_simulations(n_intervals, score, unit, mc_finished, mc_state, directory, mc_config):
     if score is None:
         raise PreventUpdate
-    print(ctx.triggered_id)
     if "score" == ctx.triggered_id:
         fig = plot_mc_simulations(score, unit)
         return fig, dash.no_update, dash.no_update, dash.no_update
@@ -129,7 +130,7 @@ def plot_simulations(n_intervals, score, unit, mc_finished, mc_state, directory,
         Y_data = collect_Y(Y_files)
         fig = plot_mc_simulations(score, unit, Y_data, mc_config["iterations"])
         progress = len(Y_data) / mc_config['iterations'] * 100
-        return fig, progress, f"{progress:2.0f}", len(Y_files)
+        return fig, progress, f"{progress:2.0f}%", len(Y_files)
     else:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
@@ -181,20 +182,27 @@ def disable_mc_interval(n_clicks, mc_finished):
 
 @app.callback(
     Output('linearity-graph', 'figure'),
+    Output('ranking-table', 'data'),
+    Output('ranking-table', 'columns'),
     Input('mc-progress-interval', 'n_intervals'),
     State("mc-finished", "data"),
-    State("directory", "data")
+    State("directory", "data"),
+    State("project", "value")
 )
-def plot_sensitivity_results(n, mc_finished, directory):
+def plot_sensitivity_results(n, mc_finished, directory, project):
+    if directory is not None:
+        directory = Path(directory)
     if mc_finished:
         X, Y = collect_XY(directory)
-        indices = read_json(directory / "indices.json")
-        linearity = compute_model_linearity(X, Y)
-        S = compute_sensitivity_indices(X, Y, linearity)
-        df = construct_gsa_dataframe(S, indices)
-        return
+        indices = read_pickle(directory / "indices.pickle")
+        model_linearity = compute_model_linearity(X, Y)
+        sensitivity_indices, sensitivity_method = compute_sensitivity_indices(X, Y, model_linearity, LINEARITY_THRESHOLD)
+        sensitivity_data = collect_sensitivity_results(project, sensitivity_indices, indices, sensitivity_method)
+        df_data, columns = create_table_gsa_ranking(sensitivity_data)
+        fig_linearity = plot_model_linearity(model_linearity, LINEARITY_THRESHOLD)
+        return fig_linearity, df_data, columns
     else:
-        return dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update
 
 
 # @app.callback(

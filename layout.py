@@ -1,10 +1,10 @@
 import os
-from dash import dcc, html, DiskcacheManager, CeleryManager
+from dash import dcc, html, DiskcacheManager, CeleryManager, dash_table
 # from constants import ITERATIONS, SEED
 import bw2data as bd
 import dash_bootstrap_components as dbc
 from make_figures import plot_mc_simulations, plot_model_linearity, plot_gsa_ranking, create_table_gsa_ranking
-from constants import ITERATIONS, SEED, INTERVAL_TIME
+from constants import ITERATIONS, SEED, INTERVAL_TIME, LINEARITY_THRESHOLD, PAGE_SIZE
 
 
 def create_background_callback_manager():
@@ -101,7 +101,7 @@ def get_tab_motivation():
                "environmental impacts associated with all the stages of the life cycle of a commercial product, "
                "process, or service. For instance, in the case of a manufactured product, environmental impacts are "
                "assessed from raw material extraction and processing (cradle), through the product's manufacture, "
-               "distribution and use, to the recycling or final disposal of the materials composing it (grave).",),
+               "distribution and use, to the recycling or final disposal of the materials composing it (grave).", ),
         html.H2("Ok, how about global sensitivity analysis?"),
         html.P("Sensitivity analysis is the study of how the uncertainty in the output of a mathematical model or "
                "system (numerical or otherwise) can be divided and allocated to different sources of uncertainty in "
@@ -153,8 +153,10 @@ def get_mc_controls():
             dcc.Store(id="directory"),
             dcc.Store(id="mc-state", data=0),
             dcc.Store(id="mc-finished", data=False),
-            dbc.Button("Start", id="btn-start-mc", n_clicks=0, outline=False, color="primary", className="btn-start-mc"),
-            dbc.Button("Cancel", id="btn-cancel-mc", n_clicks=0, outline=False, color="warning", className="btn-cancel-mc"),
+            dbc.Button("Start", id="btn-start-mc", n_clicks=0, outline=False, color="primary",
+                       className="btn-start-mc"),
+            dbc.Button("Cancel", id="btn-cancel-mc", n_clicks=0, outline=False, color="warning",
+                       className="btn-cancel-mc"),
         ], className="mc-controls-container")
     ], className="mc-controls")
     return mc_controls
@@ -163,16 +165,16 @@ def get_mc_controls():
 def get_progress():
     progress = html.Div([
         html.Label("Progress:"),
-        dcc.Interval(id="mc-progress-interval", n_intervals=0, interval=INTERVAL_TIME*1000),
+        dcc.Interval(id="mc-progress-interval", n_intervals=0, interval=INTERVAL_TIME * 1000),
         dbc.Progress(id="mc-progress", className="mc-progress", value=0, label="0%"),
     ], className="mc-progress-container")
     return progress
 
 
 def get_tab_sensitivity_analysis():
-    fig_model_linearity = plot_model_linearity()
+    fig_model_linearity = plot_model_linearity(linearity_threshold=LINEARITY_THRESHOLD)
     fig_gsa_ranking = plot_gsa_ranking()
-    table_gsa_ranking = create_table_gsa_ranking()
+    df_data, columns = create_table_gsa_ranking()
     tab = html.Div([
         dbc.Row([
             dbc.Col(html.Div([
@@ -182,17 +184,39 @@ def get_tab_sensitivity_analysis():
                        "of a function based on them. When the variables are the values of experimental "
                        "measurements they have uncertainties due to measurement limitations (e.g., instrument "
                        "precision) which propagate due to the combination of variables in the function."),
-            ]), width=7, align="start"),
+            ]), width=6, align="start"),
             dbc.Col(html.Div([
                 html.H2("LCA model linearity"),
                 dcc.Graph(id='linearity-graph', figure=fig_model_linearity, className="linearity-graph"),
-            ]), width=4, align="start"),
+            ]), width=5, align="start"),
         ], justify="evenly", className="row-gsa"),
         dbc.Col(html.H2("Influential model inputs, aka GSA results")),
         dbc.Row([
             dbc.Col(
-                # html.Table(id="ranking-table"),
-                dcc.Graph(id="ranking-graph", figure=fig_gsa_ranking, className="ranking-graph"),
+                dash_table.DataTable(
+                    data=df_data, columns=columns, id="ranking-table", page_size=21,
+                    style_table={'height': '1000px', "font-family": "sans-serif"},
+                    style_cell={"backgroundColor": "rgba(0,0,0,0)", 'textAlign': 'left', 'whiteSpace': 'pre-line'},
+                    style_header={'backgroundColor': 'rgb(175, 144, 193, 0.6)', 'textAlign': 'center',
+                                  "font-family": "sans-serif", "font-size": "16px", "font-weight": "bold"},
+                    style_cell_conditional=[
+                        {'if': {'column_id': 'GSA rank'}, 'width': '7%', 'textAlign': 'center'},
+                        {'if': {'column_id': 'LCA model input'}, 'width': '53%', 'maxWidth': '49%'},
+                        {'if': {'column_id': 'Amount'}, 'width': '19%'},
+                        {'if': {'column_id': 'Type'}, 'width': '10%'},
+                        {'if': {'column_id': 'GSA index'}, 'width': '8%'},
+                        {'if': {'column_id': 'Contribution'}, 'width': '7%'},
+                    ],
+                    style_data_conditional=[
+                        {'if': {'row_index': "even"}, 'backgroundColor': 'rgb(222, 221, 232, 0.5)'},
+                        {'if': {'column_id': 'Amount'}, 'textAlign': 'left'},
+                        {'if': {'column_id': 'GSA index'}, 'textAlign': 'right'},
+                        {'if': {'column_id': 'Contribution'}, 'textAlign': 'right'},
+                    ],
+                    style_data={'border': '1px solid white', "font-family": "sans-serif",
+                                'height': 'auto', 'lineHeight': '19px'},
+                ),
+                # dcc.Graph(id="ranking-graph", figure=fig_gsa_ranking, className="ranking-graph"),
             )
         ], justify="evenly")
     ], className="tab-sensitivity")

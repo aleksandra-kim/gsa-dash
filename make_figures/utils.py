@@ -33,7 +33,6 @@ def get_figure_layout():
             borderwidth=1,
             x=0.5, xanchor="center",
             y=-0.3, yanchor="top",
-            orientation="h",
         ),
         margin=dict(l=60, b=60, r=10, t=10)
     )
