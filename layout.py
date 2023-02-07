@@ -1,10 +1,15 @@
 import os
 from dash import dcc, html, DiskcacheManager, CeleryManager, dash_table
-# from constants import ITERATIONS, SEED
 import bw2data as bd
 import dash_bootstrap_components as dbc
-from make_figures import plot_mc_simulations, plot_model_linearity, plot_gsa_ranking, create_table_gsa_ranking
+from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking
 from constants import ITERATIONS, SEED, INTERVAL_TIME, LINEARITY_THRESHOLD, PAGE_SIZE
+
+color_even = "rgb(222, 221, 232, 0.5)"
+color_odd = "#FBFAF1"
+color_none = "rgba(0,0,0,0)"
+color_light_purple = "rgb(175, 144, 193, 0.6)"
+color_blue = "rgba(0, 0, 255, 0.5)"
 
 
 def create_background_callback_manager():
@@ -173,8 +178,9 @@ def get_progress():
 
 def get_tab_sensitivity_analysis():
     fig_model_linearity = plot_model_linearity(linearity_threshold=LINEARITY_THRESHOLD)
-    fig_gsa_ranking = plot_gsa_ranking()
-    df_data, columns = create_table_gsa_ranking()
+    df = create_table_gsa_ranking()
+    df_data = df.to_dict("records")
+    columns = [{"name": i, "id": i} for i in df.columns]
     tab = html.Div([
         dbc.Row([
             dbc.Col(html.Div([
@@ -194,33 +200,65 @@ def get_tab_sensitivity_analysis():
         dbc.Row([
             dbc.Col(
                 dash_table.DataTable(
-                    data=df_data, columns=columns, id="ranking-table", page_size=21,
-                    style_table={'height': '1000px', "font-family": "sans-serif"},
-                    style_cell={"backgroundColor": "rgba(0,0,0,0)", 'textAlign': 'left', 'whiteSpace': 'pre-line'},
-                    style_header={'backgroundColor': 'rgb(175, 144, 193, 0.6)', 'textAlign': 'center',
+                    data=df_data, columns=columns, id="ranking-table", page_size=PAGE_SIZE, sort_action='native',
+                    style_table={"font-family": "sans-serif", "borderBottom": f'1px solid {color_light_purple}'},
+                    style_header={'backgroundColor': f'{color_light_purple}', 'textAlign': 'center',
                                   "font-family": "sans-serif", "font-size": "16px", "font-weight": "bold"},
+                    style_cell={"backgroundColor": color_none, 'textAlign': 'left', 'whiteSpace': 'pre-line',
+                                'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                     style_cell_conditional=[
-                        {'if': {'column_id': 'GSA rank'}, 'width': '7%', 'textAlign': 'center'},
-                        {'if': {'column_id': 'LCA model input'}, 'width': '53%', 'maxWidth': '49%'},
-                        {'if': {'column_id': 'Amount'}, 'width': '19%'},
+                        {'if': {'column_id': 'Rank'}, 'width': '7%', 'textAlign': 'center'},
+                        {'if': {'column_id': 'LCA model input'}, 'width': '45%'},
+                        {'if': {'column_id': 'Amount'}, 'width': '15%'},
                         {'if': {'column_id': 'Type'}, 'width': '10%'},
-                        {'if': {'column_id': 'GSA index'}, 'width': '8%'},
-                        {'if': {'column_id': 'Contribution'}, 'width': '7%'},
+                        {'if': {'column_id': 'GSA index'}, 'width': '15%'},
+                        {'if': {'column_id': 'Contribution'}, 'width': '8%'},
                     ],
-                    style_data_conditional=[
-                        {'if': {'row_index': "even"}, 'backgroundColor': 'rgb(222, 221, 232, 0.5)'},
-                        {'if': {'column_id': 'Amount'}, 'textAlign': 'left'},
-                        {'if': {'column_id': 'GSA index'}, 'textAlign': 'right'},
-                        {'if': {'column_id': 'Contribution'}, 'textAlign': 'right'},
-                    ],
-                    style_data={'border': '1px solid white', "font-family": "sans-serif",
+                    style_data={"border": '1px solid white', "font-family": "sans-serif",
                                 'height': 'auto', 'lineHeight': '19px'},
+                    style_data_conditional=get_style_data_conditional(color_even),
                 ),
-                # dcc.Graph(id="ranking-graph", figure=fig_gsa_ranking, className="ranking-graph"),
             )
         ], justify="evenly")
     ], className="tab-sensitivity")
     return tab
+
+
+def get_style_data_conditional(bg_color):
+    style_data_conditional = [
+        {'if': {'row_index': "even"}, 'backgroundColor': f'{bg_color}'},
+        {'if': {'column_id': 'Amount'}, 'textAlign': 'left'},
+        {'if': {'column_id': 'GSA index'}, 'textAlign': 'right'},
+        {'if': {'column_id': 'Contribution'}, 'textAlign': 'right'},
+    ]
+    return style_data_conditional
+
+
+def style_bars_in_datatable(df, column, bar_percentage_in_cell=70):
+    styles = get_style_data_conditional(color_even)
+    values = df[column].values
+    max_value = values.max()
+    for i, val in enumerate(values):
+        color_row = color_even if i % 2 == 0 else color_odd
+        max_bound_percentage = int(val/max_value * bar_percentage_in_cell)
+        style_element = {
+            'if': {
+                'filter_query': '{{column}} = {{val}} && {{Rank}}={i}'.format(column=column, val=val, i=i+1),
+                'column_id': column,
+            },
+            'background': (
+                f"""
+                    linear-gradient(90deg,
+                    {color_blue} 0%,
+                    {color_blue} {max_bound_percentage}%,
+                    {color_row} {max_bound_percentage}%,
+                    {color_row} 100%)
+                """
+            ),
+            'paddingBottom': 2, 'paddingTop': 2
+        }
+        styles.append(style_element)
+    return styles
 
 
 def get_tab_gsa_validation():

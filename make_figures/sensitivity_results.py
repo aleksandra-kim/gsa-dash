@@ -48,7 +48,7 @@ def create_table_gsa_ranking(data=None):
     if data is None:
         n_entries = 81
         df_data = {
-            "GSA rank": list(range(1, n_entries+1)),
+            "Rank": list(range(1, n_entries+1)),
             "LCA model input": [None]*n_entries,
             "Amount": [None]*n_entries,
             "Type": [None]*n_entries,
@@ -78,46 +78,7 @@ def create_table_gsa_ranking(data=None):
         df = pd.DataFrame.from_dict(df_data)
         df = df.sort_values(by="GSA index", axis=0, ascending=False).reset_index(drop=True)
         columns = df.columns.tolist()
-        df["GSA rank"] = np.arange(1, len(df)+1)
-        columns = ["GSA rank"] + columns
+        df["Rank"] = np.arange(1, len(df)+1)
+        columns = ["Rank"] + columns
         df = df[columns]
-    df_data = df.to_dict("records")
-    columns = [{"name": i, "id": i} for i in df.columns]
-    return df_data, columns
-
-
-def plot_gsa_ranking(sensitivity_indices=None):
-    data = []
-    if sensitivity_indices is not None:
-        data = sensitivity_indices
-    layout = get_figure_layout()
-    layout["xaxis"]["title"].update(dict(text="Sensitivity index"))
-    layout["yaxis"]["title"].update(dict(text="Model input"))
-    layout["height"] = 400
-    return dict(data=data, layout=layout)
-
-
-# import pandas as pd
-# from dash import html
-#
-#
-# def get_prioritized_list():
-#     df = pd.read_excel("make_figures/data/GSA_results.xlsx")
-#     df = df[["input_names", "output_names", "spearman"]]
-#     df = df.reset_index()
-#     df.columns = ["", "input", "output", "spearman"]
-#     df['spearman'] = [f"{val:.3f}" for val in df['spearman']]
-#     return df
-#
-#
-# def generate_table(dataframe, max_rows=20):
-#     return html.Table([
-#         html.Thead(
-#             html.Tr([html.Th(col) for col in dataframe.columns])
-#         ),
-#         html.Tbody([
-#             html.Tr([
-#                 html.Td(dataframe.iloc[i][col]) for col in dataframe.columns
-#             ]) for i in range(min(len(dataframe), max_rows))
-#         ])
-#     ])
+    return df

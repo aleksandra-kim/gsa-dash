@@ -17,6 +17,7 @@ from layout import (
     get_lca_config,
     get_mc_config,
     get_lca_mc_config,
+    style_bars_in_datatable,
 )
 
 from backend.data import create_directory, collect_Y, get_Y_files, collect_XY, read_pickle
@@ -184,6 +185,7 @@ def disable_mc_interval(n_clicks, mc_finished):
     Output('linearity-graph', 'figure'),
     Output('ranking-table', 'data'),
     Output('ranking-table', 'columns'),
+    Output('ranking-table', 'style_data_conditional'),
     Input('mc-progress-interval', 'n_intervals'),
     State("mc-finished", "data"),
     State("directory", "data"),
@@ -198,11 +200,14 @@ def plot_sensitivity_results(n, mc_finished, directory, project):
         model_linearity = compute_model_linearity(X, Y)
         sensitivity_indices, sensitivity_method = compute_sensitivity_indices(X, Y, model_linearity, LINEARITY_THRESHOLD)
         sensitivity_data = collect_sensitivity_results(project, sensitivity_indices, indices, sensitivity_method)
-        df_data, columns = create_table_gsa_ranking(sensitivity_data)
+        df = create_table_gsa_ranking(sensitivity_data)
+        styles = style_bars_in_datatable(df, 'GSA index')
+        df_data = df.to_dict("records")
+        columns = [{"name": i, "id": i} for i in df.columns]
         fig_linearity = plot_model_linearity(model_linearity, LINEARITY_THRESHOLD)
-        return fig_linearity, df_data, columns
+        return fig_linearity, df_data, columns, styles
     else:
-        return dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
 # @app.callback(
