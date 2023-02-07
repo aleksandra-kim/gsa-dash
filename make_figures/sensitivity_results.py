@@ -44,9 +44,8 @@ def plot_model_linearity(linearity=None, linearity_threshold=0.8):
     return dict(data=data, layout=layout)
 
 
-def create_table_gsa_ranking(data=None):
+def create_table_gsa_ranking(data=None, n_entries=20):
     if data is None:
-        n_entries = 81
         df_data = {
             "Rank": list(range(1, n_entries+1)),
             "LCA model input": [None]*n_entries,
@@ -73,7 +72,7 @@ def create_table_gsa_ranking(data=None):
             "Amount": data["Exchange amount"],
             "Type": data["Exchange type"],
             "GSA index":  list(data["GSA index"]),
-            "Contribution": [None]*n_entries,
+            "Contribution": data["Contribution"],
         }
         df = pd.DataFrame.from_dict(df_data)
         df = df.sort_values(by="GSA index", axis=0, ascending=False).reset_index(drop=True)

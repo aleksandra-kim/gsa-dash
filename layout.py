@@ -195,32 +195,33 @@ def get_tab_sensitivity_analysis():
                 html.H2("LCA model linearity"),
                 dcc.Graph(id='linearity-graph', figure=fig_model_linearity, className="linearity-graph"),
             ]), width=5, align="start"),
-        ], justify="evenly", className="row-gsa"),
+        ], justify="evenly", className="row-gsa", style={"marginBottom": "24px"}),
         dbc.Col(html.H2("Influential model inputs, aka GSA results")),
         dbc.Row([
             dbc.Col(
                 dash_table.DataTable(
                     data=df_data, columns=columns, id="ranking-table", page_size=PAGE_SIZE, sort_action='native',
-                    style_table={"font-family": "sans-serif", "borderBottom": f'1px solid {color_light_purple}'},
+                    style_table={"font-family": "sans-serif", "borderBottom": f'1px solid {color_light_purple}',
+                                 'textOverflow': 'ellipsis'},
                     style_header={'backgroundColor': f'{color_light_purple}', 'textAlign': 'center',
                                   "font-family": "sans-serif", "font-size": "16px", "font-weight": "bold"},
                     style_cell={"backgroundColor": color_none, 'textAlign': 'left', 'whiteSpace': 'pre-line',
                                 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                     style_cell_conditional=[
                         {'if': {'column_id': 'Rank'}, 'width': '7%', 'textAlign': 'center'},
-                        {'if': {'column_id': 'LCA model input'}, 'width': '45%'},
-                        {'if': {'column_id': 'Amount'}, 'width': '15%'},
+                        {'if': {'column_id': 'LCA model input'}, 'width': '40%'},
+                        {'if': {'column_id': 'Amount'}, 'width': '13%'},
                         {'if': {'column_id': 'Type'}, 'width': '10%'},
                         {'if': {'column_id': 'GSA index'}, 'width': '15%'},
-                        {'if': {'column_id': 'Contribution'}, 'width': '8%'},
+                        {'if': {'column_id': 'Contribution'}, 'width': '15%'},
                     ],
                     style_data={"border": '1px solid white', "font-family": "sans-serif",
-                                'height': 'auto', 'lineHeight': '19px'},
+                                'height': 'auto', 'lineHeight': '19px', 'textOverflow': 'ellipsis'},
                     style_data_conditional=get_style_data_conditional(color_even),
                 ),
-            )
-        ], justify="evenly")
-    ], className="tab-sensitivity")
+            ),
+        ], justify="evenly", className="row-gsa")
+    ], className="tab-sensitivity", style={"width": "1460px"})
     return tab
 
 
@@ -234,8 +235,8 @@ def get_style_data_conditional(bg_color):
     return style_data_conditional
 
 
-def style_bars_in_datatable(df, column, bar_percentage_in_cell=70):
-    styles = get_style_data_conditional(color_even)
+def style_bars_in_datatable(df, column, color_bars=color_blue, bar_percentage_in_cell=70):
+    styles = get_style_data_conditional(color_even, column)
     values = df[column].values
     max_value = values.max()
     for i, val in enumerate(values):
@@ -249,8 +250,8 @@ def style_bars_in_datatable(df, column, bar_percentage_in_cell=70):
             'background': (
                 f"""
                     linear-gradient(90deg,
-                    {color_blue} 0%,
-                    {color_blue} {max_bound_percentage}%,
+                    {color_bars} 0%,
+                    {color_bars} {max_bound_percentage}%,
                     {color_row} {max_bound_percentage}%,
                     {color_row} 100%)
                 """
@@ -309,51 +310,3 @@ def get_lca_mc_config(state_or_input):
     mc_config = get_mc_config(state_or_input)
     lca_mc_config = {**lca_config, **mc_config}
     return lca_mc_config
-#
-#
-# def create_mc_section(fig):
-#     mc_section = html.Div([
-#         # html.Div([
-#         #     html.Div("Number of MC simulations", className="bw__field_name"),
-#         #     dcc.Input(DEFAULT_ITERATIONS, id='iterations'),
-#         #     html.Div("Random seed", className="bw__field_name"),
-#         #     dcc.Input(DEFAULT_SEED, id='seed'),
-#         #     html.Button(id='mc-button', n_clicks=0, children='Run MC', className="button"),
-#         #     # html.Button(id="button-cancel-mc-simulations", children="Cancel MC", className="button"),
-#         #     dcc.Interval(id="mc-interval", interval=2*1000, n_intervals=0),  # in milliseconds
-#         #     dcc.Store(id="directory"),
-#         #     dcc.Store(id="mc-state"),
-#         #     dcc.Store(id="mc-completed"),
-#         # ], className="bw__mc_simulations",),
-#         # html.Div([
-#         #     # html.P(id='err', style={'color': 'red'}),
-#         #     dcc.Graph(id='mc-graph', figure=fig)
-#         # ], className="bw__mc_simulations",),
-#     ])
-#     return mc_section
-#
-#
-# def create_gsa_section(df):
-#     gsa_section = html.Div([
-#         html.Div([
-#             html.Button(id='button-mc-simulations', n_clicks=0, children='Run GSA', className="button"),
-#             # html.Button(id="button-cancel-gsa", children="Cancel MC", className="button"),
-#             html.Div("", id="gsa-finished", className="bw__field_name"),
-#         ], className="bw__sensitivity_analysis",),
-#         html.Div([
-#             dash_table.DataTable(
-#                 df.to_dict('records'), [{"name": i, "id": i} for i in df.columns], page_size=40,
-#                 style_data={'color': 'white', 'backgroundColor': '#1a4c73', "maxWidth": "300px"},
-#                 style_header={'color': 'white', 'backgroundColor': '#1a4c73'},
-#                 style_table={'maxWidth': '300px'},
-#                 style_cell_conditional=[{'if': {'column_id': 'GSA rank'}, 'width': '50px'},
-#                                         {'if': {'column_id': 'Input name'}, 'maxWidth': '130px', 'minWidth': '130px'},
-#                                         {'if': {'column_id': 'location'}, 'maxWidth': '50px', 'minWidth': '50px'},
-#                                         {'if': {'column_id': 'categories'}, 'maxWidth': '50px', 'minWidth': '50px'},
-#                                         {'if': {'column_id': 'Output name'}, 'maxWidth': '130px', 'minWidth': '130px'},
-#                                         {'if': {'column_id': 'location'}, 'maxWidth': '50px', 'minWidth': '50px'},
-#                                         {'if': {'column_id': 'GSA index'}, 'maxWidth': '50px', 'minWidth': '50px'}],
-#             )
-#         ],),
-#     ], className="bw__table_gsa_container")
-#     return gsa_section

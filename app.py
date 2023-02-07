@@ -23,10 +23,11 @@ from layout import (
 from backend.data import create_directory, collect_Y, get_Y_files, collect_XY, read_pickle
 from backend.life_cycle_assessment import compute_deterministic_score
 from backend.monte_carlo import run_simulations_from_X_all
-from backend.sensitivity_analysis import compute_model_linearity, compute_sensitivity_indices, collect_sensitivity_results
+from backend.sensitivity_analysis import (
+    compute_model_linearity, compute_sensitivity_indices, collect_sensitivity_results, contribution_analysis
+)
 from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking
-
-from constants import ITERATIONS_CHUNKSIZE, INTERVAL_TIME, LINEARITY_THRESHOLD
+from constants import ITERATIONS_CHUNKSIZE, INTERVAL_TIME, LINEARITY_THRESHOLD, GT_CUTOFF, GT_MAXCALC, PAGE_SIZE
 
 # TODO
 # 1. add unit to activity amount
@@ -186,26 +187,36 @@ def disable_mc_interval(n_clicks, mc_finished):
     Output('ranking-table', 'data'),
     Output('ranking-table', 'columns'),
     Output('ranking-table', 'style_data_conditional'),
-    Input('mc-progress-interval', 'n_intervals'),
-    State("mc-finished", "data"),
-    State("directory", "data"),
-    State("project", "value")
+    inputs=dict(
+        n=Input('mc-progress-interval', 'n_intervals'),
+        mc_finished=State("mc-finished", "data"),
+        directory=State("directory", "data"),
+        lca_config=get_lca_config(State),
+        unit=State("method-unit", "children"),
+    )
 )
-def plot_sensitivity_results(n, mc_finished, directory, project):
+def plot_sensitivity_results(n, mc_finished, directory, lca_config, unit):
     if directory is not None:
         directory = Path(directory)
     if mc_finished:
+        project, database, activity, amount, method = lca_config["project"], lca_config["database"], \
+                                                      lca_config["activity"], lca_config["amount"], lca_config["method"]
         X, Y = collect_XY(directory)
         indices = read_pickle(directory / "indices.pickle")
         model_linearity = compute_model_linearity(X, Y)
         sensitivity_indices, sensitivity_method = compute_sensitivity_indices(X, Y, model_linearity, LINEARITY_THRESHOLD)
-        sensitivity_data = collect_sensitivity_results(project, sensitivity_indices, indices, sensitivity_method)
-        df = create_table_gsa_ranking(sensitivity_data)
-        styles = style_bars_in_datatable(df, 'GSA index')
+        contributions = contribution_analysis(directory, project, database, activity, amount, method, GT_CUTOFF, GT_MAXCALC)
+        sensitivity_data = collect_sensitivity_results(
+            project, sensitivity_indices, contributions, indices, sensitivity_method,
+        )
+        df = create_table_gsa_ranking(sensitivity_data, PAGE_SIZE)
+        bar_styles_gsa = style_bars_in_datatable(df, 'GSA index')
+        bar_styles_ca = style_bars_in_datatable(df, "Contribution")
         df_data = df.to_dict("records")
-        columns = [{"name": i, "id": i} for i in df.columns]
+        contribution_column = f"Contribution \n {unit}"
+        columns = [{"name": i if "Contribution" not in i else contribution_column, "id": i} for i in df.columns]
         fig_linearity = plot_model_linearity(model_linearity, LINEARITY_THRESHOLD)
-        return fig_linearity, df_data, columns, styles
+        return fig_linearity, df_data, columns, bar_styles_gsa + bar_styles_ca
     else:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update
 

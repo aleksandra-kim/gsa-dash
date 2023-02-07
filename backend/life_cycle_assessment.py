@@ -14,7 +14,7 @@ def get_bw_activity_and_method(project, database, activity, method):
     return fu, method
 
 
-def create_lca(project, database, activity, amount, method, use_distributions, seed):
+def create_lca(project, database, activity, amount, method, use_distributions=False, seed=None):
     bw_activity, bw_method = get_bw_activity_and_method(project, database, activity, method)
     lca = bc.LCA({bw_activity: amount}, bw_method, use_distributions=use_distributions, seed_override=seed)
     lca.lci()

@@ -1,7 +1,13 @@
 import numpy as np
 import bw2data as bd
+import bw2calc as bc
+from pathlib import Path
 from scipy.stats import spearmanr
 from sklearn.linear_model import LinearRegression
+
+# Local files
+from .data import read_json, write_json
+from .life_cycle_assessment import create_lca
 
 
 def compute_model_linearity(X, Y):
@@ -56,9 +62,29 @@ def compute_gradient_boosting_importances(X, Y):
     return np.zeros(X.shape[1])
 
 
-def contribution_analysis():
-    
-    return 0
+def contribution_analysis(directory, project, database, activity, amount, method, cutoff=0.005, max_calc=1e5):
+    lca = create_lca(project, database, activity, amount, method)
+    contributions_tech = contribution_analysis_technosphere(directory, lca, cutoff, max_calc)
+    contributions = {**contributions_tech}
+    return contributions
+
+
+def contribution_analysis_technosphere(directory, lca, cutoff=0.005, max_calc=1e5):
+    directory = Path(directory)
+    contribution_file = directory.parent / f"graph_traversal_cutoff{cutoff:4.3e}_maxcalc{max_calc:4.3e}.json"
+    if contribution_file.exists():
+        res = read_json(contribution_file)
+    else:
+        gt = bc.graph_traversal.AssumedDiagonalGraphTraversal()
+        res = gt.calculate(lca, cutoff=cutoff, max_calc=max_calc)
+        write_json(res, contribution_file)
+    contributions = dict()
+    for edge in res["edges"]:
+        if edge["to"] != -1:
+            row, col = edge['from'], edge['to']
+            i, j = lca.dicts.activity.reversed[row], lca.dicts.activity.reversed[col]
+            contributions[(i, j)] = edge['impact']
+    return contributions
 
 
 def collect_sensitivity_results(project, S, C, indices, sensitivity_method="GSA index"):
@@ -66,6 +92,7 @@ def collect_sensitivity_results(project, S, C, indices, sensitivity_method="GSA 
     row_act_names, row_act_locations, row_act_categories = [], [], []
     col_act_names, col_act_locations, static_data = [], [], []
     types, amounts, units = [], [], []
+    contributions = []
     for i in indices:
         row_act = bd.get_activity(i['row'])
         col_act = bd.get_activity(i['col'])
@@ -79,8 +106,11 @@ def collect_sensitivity_results(project, S, C, indices, sensitivity_method="GSA 
                 amounts.append(exc.amount)
                 units.append(exc.input["unit"])
                 types.append(exc.get("type"))
+        contribution = C.get((row_act.id, col_act.id), 0)
+        contributions.append(contribution)
     amounts_display = [f"{a[0]:4.2e} {a[1]} " for a in zip(amounts, units)]
     S_display = [float(f"{s: 6.4f}") for s in S]
+    C_display = [float(f"{c: 6.4f}") for c in contributions]
     data = {
         "Input name": row_act_names,
         "Input location": row_act_locations,
@@ -90,7 +120,7 @@ def collect_sensitivity_results(project, S, C, indices, sensitivity_method="GSA 
         "Exchange type": types,
         "Exchange amount": amounts_display,
         "GSA index": S_display,
-        "Contribution": C,
+        "Contribution": C_display,
         "GSA method": sensitivity_method,
     }
     return data

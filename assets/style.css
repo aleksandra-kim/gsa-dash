@@ -204,7 +204,7 @@ h3 {
     display: flex;
     justify-content: space-between;
     min-width: 800px;
-    max-width: 1400px;
+    max-width: 1500px;
     margin-left: auto;
     margin-right: auto;
     padding: 24px;
@@ -221,6 +221,10 @@ h3 {
     flex-grow: 1;
     width: 1400px;
     box-color: red;
+}
+
+.tab-sensitivity{
+    width: 1400px;
 }
 
 .mc-progress {
@@ -241,8 +245,4 @@ h3 {
 
 .linearity-graph {
     height: 17vh;
-}
-
-.row-gsa, .justify-content-evenly, .row {
-    margin-bottom: 30px
 }
