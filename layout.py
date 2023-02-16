@@ -249,15 +249,16 @@ def get_tab_uncertainty_propagation():
                     LCIA scores are computed. 
                     
                     The user can define number of `iterations N` and `random seed` to ensure 
-                    reproducibility of random samples. 
-                    
-                    ![Monte Carlo](https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/b669f3a8a8fde48679dc8606a254781925fc6c87/latex_images/monte_carlo.svg)
-                    
-                    Define your LCA study in the menu above, then press `Start` to begin MC simulations! 
-                    
+                    reproducibility of random samples.                     
                     '''
                 ),
-                html.Img(src=image_directory),
+                html.Img(src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/2f5bf222eabbde5da6ef07a91858017d6ce7b277/latex_images/monte_carlo.svg",
+                         style={"width": "100%"}),
+                dcc.Markdown(
+                    '''                                       
+                    Define your LCA study in the menu above, then press `Start` to begin MC simulations! 
+                    '''
+                ),
             ]), width=5, align="start"),
             dbc.Col(html.Div([
                 html.H2("Monte Carlo simulations"),
