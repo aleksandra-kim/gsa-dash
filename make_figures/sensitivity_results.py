@@ -11,17 +11,17 @@ def plot_model_linearity(linearity=None, linearity_threshold=0.8):
     data.append(dict(
         type="scatter", x=[0, 10], y=[1, 1],
         mode="lines", line=dict(color="red", dash="dash"),
-        name="Linear model", showlegend=True,
+        name="Perfectly linear model", showlegend=True,
     ))
     data.append(dict(
         type="scatter", x=[0, 10], y=[linearity_threshold, linearity_threshold],
         mode="lines", line=dict(color="orange", dash="dash"),
-        name="Apprx. linear model", showlegend=True,
+        name="Linearity threshold", showlegend=True,
     ))
     data.append(dict(
         type="scatter", x=[None], y=[None],
         mode="markers+lines", marker=dict(symbol="x", size=10, color="blue"),
-        name="SRCs of LCA model", showlegend=True,
+        name="Linearity of the LCA model", showlegend=True,
     ))
     layout["xaxis"]["title"].update(dict(text="Monte Carlo iterations"))
     layout["yaxis"]["title"].update(dict(text="Degree of linearity"))

@@ -115,7 +115,7 @@ def get_tab_motivation():
         html.H2("So... what is life cycle assessment?"),
         dcc.Markdown(
             '''
-            _Life Cycle Assessment (LCA)_ is a methodology for assessing environmental impacts associated with all the 
+            `Life Cycle Assessment (LCA)` is a methodology for assessing environmental impacts associated with all the 
             stages of the life cycle of a product, process or service. For instance, the impacts for manufacturing 
             a product are assessed from raw material extraction and processing (cradle), through the product's 
             manufacture, distribution and use, to the recycling or final disposal of the materials composing it (grave).
@@ -132,9 +132,11 @@ def get_tab_motivation():
         ),
         html.H2("What can we do with the uncertainties?"),
         dcc.Markdown(
-            "At the very least, we can try to understand how much they affect LCA results. For that, we conduct "
-            "_uncertainty analysis_ by first propagating uncertainties from LCA model inputs to the output, and then "
-            "analyzing the resulting distribution of Life Cycle Impact Assessment (LCIA) scores and robustness of the LCA.",
+            '''
+            At the very least, we can try to understand how much they affect LCA results. For that, we conduct 
+            `uncertainty analysis` by first propagating uncertainties from LCA model inputs to the output, and then 
+            analyzing the resulting distribution of Life Cycle Impact Assessment (LCIA) scores and robustness of the LCA.
+            ''',
             style={"marginBottom": "40px"}
         ),
         html.H2("Why is global sensitivity analysis needed?"),
@@ -147,23 +149,27 @@ def get_tab_motivation():
             ]),
         ]),
         dcc.Markdown(
-            "Formally, _sensitivity analysis_ is the study of how the uncertainty in the output of a model or system can be "
-            "allocated to different sources of uncertainty in its inputs.",
+            '''
+            Formally, `sensitivity analysis` is the study of how the uncertainty in the output of a model or system can be 
+            allocated to different sources of uncertainty in its inputs.
+            ''',
             style={"marginBottom": "16px"}
         ),
         html.P([
             "It refers to a family of methods that can determine, which varying or uncertain model inputs",
             html.Ul([
-                html.Li("are important, or influential, meaning that they lead to most significant changes in the model output;"),
-                html.Li("are unimportant, or non-influential, namely, they can be fixed to any value in their range "
-                    "of variability without significantly affecting the model output."),
+                html.Li("are `influential`, meaning that they lead to most significant changes in the model output;"),
+                html.Li("are `non-influential`, namely, they can be fixed to any value in their range of variability "
+                        "without significantly affecting the model output."),
             ]),
         ]),
         dcc.Markdown(
-            "_Global Sensitivity Analysis (GSA)_ means that the effect on the model output is studied by varying all "
-            "model inputs simultaneously, as opposed to the _local sensitivity analysis_, where each input is varied "
-            "one at a time. In LCA it is common to use the local analysis due to its simplicity, even though it is "
-            "only suitable for linear models.",
+            '''
+            `Global Sensitivity Analysis (GSA)` means that the effect on the model output is studied by varying all 
+            model inputs simultaneously, as opposed to the `local sensitivity analysis`, where each input is varied 
+            one at a time. In LCA it is common to use the local analysis due to its simplicity, even though it is 
+            only suitable for linear models.
+            ''',
             style={"marginBottom": "40px"}
         ),
         html.H2("What is an LCA model?"),
@@ -173,54 +179,50 @@ def get_tab_motivation():
         ),
         html.Table([
             html.Tr([
-                html.Td(dcc.Markdown('''$d \\in \\mathbb{R}^{n}$''', mathjax=True)),
+                html.Td(dcc.Markdown("$d \\in \\mathbb{R}^{n}$", mathjax=True)),
                 html.Td(dcc.Markdown("Final demand vector")),
                 html.Td(dcc.Markdown("Selects the products, whose environmental impacts we aim to estimate.")),
             ]),
             html.Tr([
-                html.Td(dcc.Markdown('''$T \\in \\mathbb{R}^{n \\times n}$''', mathjax=True)),
+                html.Td(dcc.Markdown("$T \\in \\mathbb{R}^{n \\times n}$", mathjax=True)),
                 html.Td(dcc.Markdown("Technology / &nbsp &nbsp &nbsp Technosphere matrix")),
                 html.Td(dcc.Markdown("Stores information about energy, material and waste flows of the considered $n$ "
                                      "manufacturing processes. Each element in the matrix is called an intermediate "
                                      "exchange.", mathjax=True)),
             ]),
             html.Tr([
-                html.Td(dcc.Markdown('''$B\\in \\mathbb{R}^{m \\times n}$''', mathjax=True)),
+                html.Td(dcc.Markdown("$B\\in \\mathbb{R}^{m \\times n}$", mathjax=True)),
                 html.Td(dcc.Markdown("Intervention / &nbsp &nbsp &nbsp Biosphere matrix")),
                 html.Td(dcc.Markdown("Contains $m$ resources and emissions needed for or resulting from $n$ manufacturing "
                                      "processes. Each element in the matrix is called an elementary exchange or "
                                      "environmental flow.", mathjax=True)),
             ]),
             html.Tr([
-                html.Td(dcc.Markdown('''$C\\in \\mathbb{R}^{p \\times m}$''', mathjax=True)),
+                html.Td(dcc.Markdown("$C\\in \\mathbb{R}^{p \\times m}$", mathjax=True)),
                 html.Td(dcc.Markdown("Characterization matrix")),
                 html.Td(dcc.Markdown("Consists of characterization factors that weigh $m$ resources and emissions to "
                                      "compute environmental impacts for $p$ impact categories.", mathjax=True)),
             ]),
             html.Tr([
-                html.Td(dcc.Markdown('''$y\\in \\mathbb{R}^{p}$''', mathjax=True)),
+                html.Td(dcc.Markdown("$y\\in \\mathbb{R}^{p}$", mathjax=True)),
                 html.Td(dcc.Markdown("Impact scores")),
                 html.Td(dcc.Markdown("Life cycle impact assessment (LCIA) results for $p$ impact categories.", mathjax=True)),
             ]),
         ], style={"marginBottom": "16px"}),
         dcc.Markdown(
-            "For the sake of GSA we think of this model as &nbsp $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$, &nbsp where "
-            "&nbsp $\\mathbf{x} \\in \\mathbb{R}^{k}$ &nbsp is the vector of $k$ uncertain model inputs. Here we only consider "
-            "parameter uncertainty, and define as LCA model inputs uncertain intermediate exchanges, environmental flows and "
-            "characterization factors.",
+            '''
+            For the sake of GSA we think of this model as &nbsp $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$, &nbsp where 
+            &nbsp $\\mathbf{x} \\in \\mathbb{R}^{k}$ &nbsp is the vector of $k$ uncertain model inputs. Here we only consider 
+            `parameter uncertainty`, and define as LCA model inputs uncertain intermediate exchanges, environmental flows and 
+            characterization factors.
+            ''',
             mathjax=True, style={"marginBottom": "16px"}
         ),
-        # html.P(
-        #     "Notice that this model is linear with respect to environmental flows and characterization factors, "
-        #     "and non-linear in intermediate exchanges. Degree of model linearity is important, because it "
-        #     "determines which GSA methods can be used for a particular model."
-        # ),
     ], className="tab-motivation")
     return tab
 
 
 def get_tab_uncertainty_propagation():
-    image_directory = os.getcwd() + 'latex_figures/monte_carlo.png'
     fig = plot_mc_simulations()
     mc_controls = get_mc_controls()
     progress = get_progress()
@@ -232,34 +234,35 @@ def get_tab_uncertainty_propagation():
                     '''
                     In statistics, propagation of uncertainty (or propagation of error) is the effect of
                     inputs' uncertainties on the uncertainty of a function $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$ 
-                    based on them. It can be conducted analytically using formulas or numerically with Monte Carlo (MC) 
-                    simulations. In LCA, it is common to use the latter. 
-                    ''', mathjax=True, style={"marginBottom": "16px"}
+                    based on them. It can be conducted analytically using formulas or numerically with `Monte Carlo (MC) 
+                    simulations`. In LCA, it is common to use the latter. 
+                    ''',
+                    mathjax=True, style={"marginBottom": "16px"}
                 ),
                 html.P(html.Img(
                     src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
                     style={"width": "85%"}
-                    ), style={"marginBottom": "16px", "textAlign": "center"}
+                    ),
+                    style={"marginBottom": "16px", "textAlign": "center"}
                 ),
                 dcc.Markdown(
                     '''
                     For each simulation, random samples are drawn from the predefined input distributions, and 
                     LCIA scores are computed. The user can define number of `iterations N` and `random seed` to ensure 
                     reproducibility of random samples.                     
-                    ''', style={"marginBottom": "16px"}
+                    ''',
+                    style={"marginBottom": "16px"}
                 ),
-                dcc.Markdown(
-                    '''                                       
-                    Define your LCA study in the menu above, then press `Start` to begin MC simulations! 
-                    ''', style={"textAlign": "center"}
-                ),
-            ]), width=6, align="start"),
+            ]), width=5, align="start"),
             dbc.Col(html.Div([
                 html.H2("Monte Carlo simulations"),
+                html.P("Define LCA study in the menu above, then start MC simulations!",
+                    style={"marginBottom": "16px", "textAlign": "center"}
+                ),
                 mc_controls,
                 progress,
                 dcc.Graph(id='mc-graph', figure=fig),
-            ]), width=5, align="start"),
+            ]), width=6, align="start"),
         ], justify="evenly"),
     ], className="tab-propagation")
     return tab
@@ -310,18 +313,26 @@ def get_tab_sensitivity_analysis():
                     '''
                     For each model input, we compute _sensitivity index_ - quantitative measure of input's importance. 
                     Widely used indices are correlation coefficients, Sobol indices, Shapley values, delta indices. 
-                    Typically, sensitivity indices for LCA models are computed numerically based on MC simulations.
-                    ''', style={"marginBottom": "16px"}
-                ),
-                html.P(html.Img(
-                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/efa24513496ecdd6a1924105fd7f4df5cacb18f0/latex_images/sensitivity_indices.svg",
-                    style={"width": "60%"}
-                    ), style={"marginBottom": "16px", "textAlign": "center"}
+                    ''',
+                    style={"marginBottom": "16px"}
                 ),
                 dcc.Markdown(
                     '''
-                    More MC iterations yield better convergence of the sensitivity indices estimates. Same applies to 
-                    the model linearity, where we show on the right Figure how linearity changes as the iterations increase.
+                    Typically, sensitivity indices for LCA models are computed numerically based on MC simulations.
+                    More simulations yield better convergence of the sensitivity indices estimates.
+                    ''',
+                    style={"marginBottom": "16px"}
+                ),
+                html.P(html.Img(
+                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/95a298ddc430809a4c763a2975b137482fa42169/latex_images/sensitivity_indices.svg",
+                    style={"width": "60%"}
+                    ),
+                    style={"marginBottom": "16px", "textAlign": "center"}
+                ),
+                dcc.Markdown(
+                    '''
+                    Which GSA method to use depends on its underlying assumptions, one of the important one being the 
+                    `degree of model linearity`.
                     '''
                 ),
             ]), width=5, align="start"),
@@ -329,20 +340,38 @@ def get_tab_sensitivity_analysis():
                 html.H2("LCA model linearity"),
                 dcc.Markdown(
                     '''
-                    Which method to use depends on its underlying assumptions, one of the important one being the 
-                    `degree of model linearity`. General LCA model is linear with respect to environmental flows and characterization 
-                    factors, and non-linear in intermediate exchanges. Linearity of a particular model
-                    can be determined with standardized linear regression coefficients. If linear regression explains
-                    LCA model outcomes well (linearity $>$ chosen threshold), then the model is considered
-                    sufficiently linear and correlation coefficients can be used. Otherwise, we recommend the gradient 
-                    boosted tree method.
-                    ''', mathjax=True, style={"marginBottom": "16px"}
+                    General LCA model is linear with respect to environmental flows and characterization 
+                    factors, and non-linear in intermediate exchanges. 
+                    ''',
+                    mathjax=True, style={"marginBottom": "16px"}
+                ),
+                dcc.Markdown(
+                    '''
+                    Linearity of a particular model can be determined with standardized linear regression coefficients. 
+                    If linear regression explains LCA model outcomes well (linearity $>$ chosen `linearity threshold`), 
+                    then the model is considered sufficiently linear and correlation coefficients are used. Otherwise, 
+                    the dashboard computes feature importance indices from the gradient boosted tree method.
+                    ''',
+                    mathjax=True, style={"marginBottom": "16px"}
+                ),
+                dcc.Markdown(
+                    '''
+                    Linearity also depends on the number of MC simulations, as shown below:
+                    ''',
+                    mathjax=True, style={"marginBottom": "16px"}
                 ),
                 dcc.Graph(id='linearity-graph', figure=fig_model_linearity, className="linearity-graph"),
-            ]), width=5, align="start"),
+            ]), width=6, align="start"),
         ], justify="evenly", className="row-gsa", style={"marginBottom": "60px"}),
         dbc.Col(html.H2("Influential model inputs, aka GSA results")),
         dbc.Row([
+            dcc.Markdown(
+                    '''
+                    The table below lists influential model inputs, ranked with GSA. It also shows the contributions of
+                    each model input to the total deterministic LCIA score to help interpret the results.  
+                    ''',
+                mathjax=True, style={"marginBottom": "16px", "width": "75%"}
+                ),
             dbc.Col(
                 dash_table.DataTable(
                     data=df_data, columns=columns, id="ranking-table", page_size=PAGE_SIZE, sort_action='native',
