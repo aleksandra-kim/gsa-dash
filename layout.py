@@ -110,7 +110,7 @@ def get_tab_motivation():
             "Global Sensitivity Analysis of Life Cycle Assessment, ",
             html.Br(),
             "with necessary computations and visualization of the results - all in one place."],
-            style={"marginBottom": "40px", "color": "#C223BC", "textAlign": "center", "lineHeight": 1.6,
+            style={"marginBottom": "40px", "color": "#DA640F", "textAlign": "center", "lineHeight": 1.6,
                    "fontWeight": 500}),
         html.H2("So... what is life cycle assessment?"),
         dcc.Markdown(
@@ -159,12 +159,6 @@ def get_tab_motivation():
                     "of variability without significantly affecting the model output."),
             ]),
         ]),
-        dcc.Markdown(
-            "For each model input, we compute _sensitivity index_ - quantitative measure of input's importance. Widely "
-            "used indices are correlation and regression coefficients, Sobol first and total order indices, Shapley "
-            "values, delta moment-independent indices.",
-            style={"marginBottom": "16px"}
-        ),
         dcc.Markdown(
             "_Global Sensitivity Analysis (GSA)_ means that the effect on the model output is studied by varying all "
             "model inputs simultaneously, as opposed to the _local sensitivity analysis_, where each input is varied "
@@ -216,11 +210,11 @@ def get_tab_motivation():
             "characterization factors.",
             mathjax=True, style={"marginBottom": "16px"}
         ),
-        html.P(
-            "Notice that this model is linear with respect to environmental flows and characterization factors, "
-            "and non-linear in intermediate exchanges. Degree of model linearity is important, because it "
-            "determines which GSA methods can be used for a particular model."
-        ),
+        # html.P(
+        #     "Notice that this model is linear with respect to environmental flows and characterization factors, "
+        #     "and non-linear in intermediate exchanges. Degree of model linearity is important, because it "
+        #     "determines which GSA methods can be used for a particular model."
+        # ),
     ], className="tab-motivation")
     return tab
 
@@ -243,8 +237,8 @@ def get_tab_uncertainty_propagation():
                     ''', mathjax=True, style={"marginBottom": "16px"}
                 ),
                 html.P(html.Img(
-                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/fdcda511bc55f87e9067366d5b5514244488109b/latex_images/monte_carlo.svg",
-                    style={"width": "80%"}
+                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
+                    style={"width": "85%"}
                     ), style={"marginBottom": "16px", "textAlign": "center"}
                 ),
                 dcc.Markdown(
@@ -259,7 +253,7 @@ def get_tab_uncertainty_propagation():
                     Define your LCA study in the menu above, then press `Start` to begin MC simulations! 
                     ''', style={"textAlign": "center"}
                 ),
-            ]), width=5, align="start"),
+            ]), width=6, align="start"),
             dbc.Col(html.Div([
                 html.H2("Monte Carlo simulations"),
                 mc_controls,
@@ -312,14 +306,38 @@ def get_tab_sensitivity_analysis():
         dbc.Row([
             dbc.Col(html.Div([
                 html.H2("Global sensitivity analysis"),
-                html.P("In statistics, propagation of uncertainty (or propagation of error) is the effect of "
-                       "variables' uncertainties (or errors, more specifically random errors) on the uncertainty "
-                       "of a function based on them. When the variables are the values of experimental "
-                       "measurements they have uncertainties due to measurement limitations (e.g., instrument "
-                       "precision) which propagate due to the combination of variables in the function."),
-            ]), width=6, align="start"),
+                dcc.Markdown(
+                    '''
+                    For each model input, we compute _sensitivity index_ - quantitative measure of input's importance. 
+                    Widely used indices are correlation coefficients, Sobol indices, Shapley values, delta indices. 
+                    Typically, sensitivity indices for LCA models are computed numerically based on MC simulations.
+                    ''', style={"marginBottom": "16px"}
+                ),
+                html.P(html.Img(
+                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
+                    style={"width": "85%"}
+                    ), style={"marginBottom": "16px", "textAlign": "center"}
+                ),
+                dcc.Markdown(
+                    '''
+                    More MC iterations yield better convergence of the sensitivity indices estimates. Same applies to 
+                    the model linearity, where we show on the right Figure how linearity changes as the iterations increase.
+                    '''
+                ),
+            ]), width=5, align="start"),
             dbc.Col(html.Div([
                 html.H2("LCA model linearity"),
+                dcc.Markdown(
+                    '''
+                    Which method to use depends on its underlying assumptions, one of the important one being the 
+                    `degree of model linearity`. General LCA model is linear with respect to environmental flows and characterization 
+                    factors, and non-linear in intermediate exchanges. Linearity of a particular model
+                    can be determined with standardized linear regression coefficients. If linear regression explains
+                    LCA model outcomes well (linearity $>$ chosen threshold), then the model is considered
+                    sufficiently linear and correlation coefficients can be used. Otherwise, we recommend the gradient 
+                    boosted tree method.
+                    ''', mathjax=True, style={"marginBottom": "16px"}
+                ),
                 dcc.Graph(id='linearity-graph', figure=fig_model_linearity, className="linearity-graph"),
             ]), width=5, align="start"),
         ], justify="evenly", className="row-gsa", style={"marginBottom": "24px"}),
