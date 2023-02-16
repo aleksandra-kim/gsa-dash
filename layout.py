@@ -240,7 +240,7 @@ def get_tab_uncertainty_propagation():
                     mathjax=True, style={"marginBottom": "16px"}
                 ),
                 html.P(html.Img(
-                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
+                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/15869fb6779334105e66bdccd46559fe733831ab/latex_images/monte_carlo.svg",
                     style={"width": "92%"}
                     ),
                     style={"marginBottom": "16px", "textAlign": "center"}
