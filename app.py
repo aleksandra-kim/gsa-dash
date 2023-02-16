@@ -17,6 +17,7 @@ from layout import (
     get_lca_config,
     get_mc_config,
     get_lca_mc_config,
+    get_val_config,
     style_bars_in_datatable,
 )
 
@@ -26,7 +27,8 @@ from backend.monte_carlo import run_simulations_from_X_all
 from backend.sensitivity_analysis import (
     compute_model_linearity, compute_sensitivity_indices, collect_sensitivity_results, contribution_analysis
 )
-from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking
+from backend.validation import run_validation, collect_validation_results
+from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking, plot_validation
 from constants import ITERATIONS_CHUNKSIZE, INTERVAL_TIME, LINEARITY_THRESHOLD, GT_CUTOFF, GT_MAXCALC, PAGE_SIZE
 
 # TODO
@@ -86,31 +88,13 @@ def compute_deterministic_score_wrapper(lca_config):
     return f"{score:.3e}", unit
 
 
-# @app.callback(
-#     Output("mc-state", "data"),
-#     Input("mc-progress-interval", "n_intervals"),
-#     State("directory", "data"),
-#     State("mc-state", "data"),
-# )
-# def check_mc_state(n_intervals, directory, mc_state):
-#     if directory is None:
-#         raise PreventUpdate
-#     files = get_scores_files(directory)
-#     updated_mc_state = len(files)
-#     print(mc_state, updated_mc_state)
-#     if mc_state != updated_mc_state:
-#         return updated_mc_state
-#     else:
-#         return dash.no_update
-
-
 @app.callback(
     Output("mc-graph", 'figure'),
     Output("mc-progress", "value"),
     Output("mc-progress", "label"),
     Output("mc-state", "data"),
     inputs=dict(
-        n_intervals=Input("mc-progress-interval", "n_intervals"),
+        n_intervals=Input("mc-interval", "n_intervals"),
         score=Input("score", "children"),
     ),
     state=dict(
@@ -170,11 +154,11 @@ def run_simulations_wrapper(directory, n_clicks, lca_mc_config):
 
 
 @app.callback(
-    Output('mc-progress-interval', 'max_intervals'),
+    Output('mc-interval', 'max_intervals'),
     Input("btn-start-mc", "n_clicks"),
     Input("mc-finished", "data"),
 )
-def disable_mc_interval(n_clicks, mc_finished):
+def toggle_mc_interval(n_clicks, mc_finished):
     if mc_finished:
         time.sleep(INTERVAL_TIME)
         return None
@@ -187,15 +171,16 @@ def disable_mc_interval(n_clicks, mc_finished):
     Output('ranking-table', 'data'),
     Output('ranking-table', 'columns'),
     Output('ranking-table', 'style_data_conditional'),
+    Output('sensitivity-indices', 'data'),
     inputs=dict(
-        n=Input('mc-progress-interval', 'n_intervals'),
+        n_intervals=Input('mc-interval', 'n_intervals'),
         mc_finished=State("mc-finished", "data"),
         directory=State("directory", "data"),
         lca_config=get_lca_config(State),
         unit=State("method-unit", "children"),
     )
 )
-def plot_sensitivity_results(n, mc_finished, directory, lca_config, unit):
+def plot_sensitivity_results(n_intervals, mc_finished, directory, lca_config, unit):
     if directory is not None:
         directory = Path(directory)
     if mc_finished:
@@ -216,75 +201,98 @@ def plot_sensitivity_results(n, mc_finished, directory, lca_config, unit):
         contribution_column = f"Contribution \n {unit}"
         columns = [{"name": i if "Contribution" not in i else contribution_column, "id": i} for i in df.columns]
         fig_linearity = plot_model_linearity(model_linearity, LINEARITY_THRESHOLD)
-        return fig_linearity, df_data, columns, bar_styles_gsa + bar_styles_ca
+        return fig_linearity, df_data, columns, bar_styles_gsa + bar_styles_ca, sensitivity_indices
     else:
-        return dash.no_update, dash.no_update, dash.no_update, dash.no_update
+        return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
 
 
-# @app.callback(
-#     Output("sensitivity-analysis", 'children'),
-#     Output("mc-completed", 'value'),
-#     inputs=dict(
-#         directory=Input("directory", "value"),
-#         all_states=get_lca_mc_config(State),
-#     ),
-# )
-# def run_mc_simulations_wrapper(directory, all_states):
-#     if directory is None:
-#         raise PreventUpdate
-#     project, database, activity, amount, method, iterations, seed = all_states["project"], all_states["database"], \
-#         all_states["method"], all_states["activity"], all_states["amount"], all_states["iterations"], all_states["seed"]
-#     run_mc_simulations_from_dp_X_all(
-#         directory, project, database, activity, amount, method, iterations, seed, DEFAULT_CHUNKSIZE
-#     )
-#     df = create_gsa_results_dataframe(directory, project)
-#     gsa_section = create_gsa_section(df)
-#     return gsa_section, True
-#
-#
-# # @app.callback(
-# #     Output('mc-interval', 'disabled'),
-# #     Input("mc-completed", "value"),
-# # )
-# # def disable_mc_interval(mc_completed):
-# #     if mc_completed is not None and mc_completed:
-# #         return True
-#
-#
-# @app.callback(
-#     Output("mc-state", "value"),
-#     Output("mc-graph", "figure"),
-#     Input('mc-interval', 'n_intervals'),
-#     Input("mc-button", "n_clicks"),
-#     Input("mc-completed", "value"),
-#     State("directory", "value"),
-#     State("mc-state", "value"),
-#     State("score", "children"),
-#     State("method-unit", "children"),
-# )
-# def update_mc_state(n_intervals, n_clicks, mc_completed, directory, mc_state, score, method_unit):
-#     if mc_completed is not None and mc_completed:
-#         directory = Path(directory)
-#         mc_scores = collect_mc_scores(directory)
-#         figure = plot_mc_simulations(score, method_unit, mc_scores)
-#         import plotly.graph_objects as go
-#         f = go.Figure(figure)
-#         f.write_image(directory / "mc.webp")
-#         return dash.no_update, figure
-#     if directory is None or n_clicks == 0:
-#         return dash.no_update, dash.no_update
-#     directory = Path(directory)
-#     yfiles = get_mc_scores_files(directory)
-#     if mc_state is None:
-#         return len(yfiles), dash.no_update
-#     if mc_state == len(yfiles):
-#         return dash.no_update, dash.no_update
-#     if mc_state + 1 == len(yfiles):
-#         mc_scores = collect_mc_scores(directory)
-#         if len(mc_scores) > 0:
-#             figure = plot_mc_simulations(score, method_unit, mc_scores)
-#             return mc_state + 1, figure
+@app.callback(
+    Output("val-graph", 'figure'),
+    Output("val-state", "data"),
+    inputs=dict(
+        n_intervals=Input("val-interval", "n_intervals")
+    ),
+    state=dict(
+        val_finished=State("val-finished", "data"),
+        val_state=State("val-state", "data"),
+        val_directory=State("val-directory", "data"),
+    ),
+)
+def plot_validation_results(n_intervals, val_finished, val_state, val_directory):
+    print(ctx.triggered_id)
+    print(n_intervals, val_finished, val_state, val_directory)
+    # if "val-interval" == ctx.triggered_id:
+    #     fig = plot_validation(metric=metric)
+    #     return fig, dash.no_update
+    if val_finished:
+        metric = collect_validation_results(val_directory)
+        fig = plot_validation(metric=metric)
+        return fig, dash.no_update
+    else:
+        return dash.no_update, dash.no_update
+
+
+@app.callback(
+    Output("val-directory", "data"),
+    inputs=dict(
+        n_clicks=Input("btn-start-val", "n_clicks"),
+        directory=State('directory', 'data'),
+        val_iterations=State('val-iterations', 'value'),
+    ),
+)
+def create_validation_directory(n_clicks, directory, val_iterations):
+    if directory is None:
+        raise PreventUpdate
+    val_directory = Path(directory) / f"validation_iterations{val_iterations}"
+    val_directory.mkdir(exist_ok=True, parents=True)
+    return str(val_directory)
+
+
+@app.callback(
+    Output("val-finished", "data"),
+    inputs=dict(
+        val_directory=Input("val-directory", "data"),
+        n_clicks=State("btn-start-val", "n_clicks"),
+        sensitivity_indices=State('sensitivity-indices', 'data'),
+        val_config=get_val_config(State),
+        lca_config=get_lca_config(State),
+    ),
+)
+def run_validation_wrapper(val_directory, n_clicks, sensitivity_indices, val_config, lca_config):
+    if val_directory is None:
+        raise PreventUpdate
+    run_validation(val_directory, sensitivity_indices, val_config, lca_config)
+    return True
+
+
+@app.callback(
+    Output('val-interval', 'max_intervals'),
+    Input("btn-start-val", "n_clicks"),
+    Input("val-finished", "data"),
+)
+def toggle_val_interval(n_clicks, val_finished):
+    print("here", ctx.triggered_id)
+    if val_finished:
+        time.sleep(INTERVAL_TIME)
+        return None
+    if n_clicks > 0:
+        return 1e5
 
 
 if __name__ == '__main__':
     app.run_server(port=8050, debug=True, processes=4, threaded=False)
+    # S = [4.603434194207573e-07, 2.2249683869030188e-05, 3.9360692583675376e-05, 6.829567686821097e-06, 0.00015842636669209997, 3.551273901176164e-05, 0.000184551181813614, 7.054943648507228e-05, 0.00018215709387586402, 7.867614387276886e-05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00033280917001736877, 2.584947636800068e-05, 0.10972620439924098, 0.2724981409967113, 0.00018457405848154113, 0.0012288022072621477, 2.1383620949436447e-05, 0.0001348117550599159, 7.552255360738365e-05, 0.0009538848457231237, 0.007721988479436372, 0.013300715865253408, 0.0008915836482620274, 0.000185372391008026, 1.4224811226337263e-05, 0.0001195778767520251, 9.187438700718488e-05, 0.0014423581429162105, 0.00015401592493782812, 0, 0.0009701767380501706, 6.890766349306294e-05, 0.00038529065074951216, 0.0004131647479950618, 0, 0.022048581800915297, 0, 0.11700268404946852, 0, 0.1463808191369305, 0, 0.027037078020182233, 0, 0.03119299658358151, 0, 0.03255405434807512, 0, 0.024937797544296134, 0, 0.03472719724355662, 0, 0.08358332603421352, 0, 0.031620923017200125, 0, 0.036831060395590504, 0, 6.302513115373807e-05, 3.839752982900482e-05, 6.5355717002662834e-06, 3.4695276843202386e-06, 2.394251970391751e-07, 6.3514838825418516e-09, 5.456150321608011e-05, 2.727171983956564e-07, 7.237749383616146e-09, 1.829328180860258e-05, 0.00016449301164658158, 1.279803864025152e-05, 1.3748388637538642e-06]
+    # directory = Path("/home/aleksandrakim/gsa-dash-cache/8a7c0f6422780773/iterations8000_seed1234567/validation")
+    # val_config = dict(
+    #     max_influential=80,
+    #     step_influential=40,
+    #     iterations=10,
+    # )
+    # lca_config = dict(
+    #     project="Uncertainties Chaerhan",
+    #     database="Chaerhan_38",
+    #     activity="Rotary dryer, CN",
+    #     amount=1,
+    #     method="IPCC 2013, climate change, GWP 100a",
+    # )
+    # run_validation(directory, S, val_config, lca_config)

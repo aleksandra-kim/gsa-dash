@@ -122,5 +122,6 @@ def collect_sensitivity_results(project, S, C, indices, sensitivity_method="GSA 
         "GSA index": S_display,
         "Contribution": C_display,
         "GSA method": sensitivity_method,
+        "indices": indices,
     }
     return data

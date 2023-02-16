@@ -2,8 +2,11 @@ import os
 from dash import dcc, html, DiskcacheManager, CeleryManager, dash_table
 import bw2data as bd
 import dash_bootstrap_components as dbc
-from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking
-from constants import ITERATIONS, SEED, INTERVAL_TIME, LINEARITY_THRESHOLD, PAGE_SIZE
+from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking, plot_validation
+from constants import (
+    ITERATIONS, SEED, INTERVAL_TIME, LINEARITY_THRESHOLD, PAGE_SIZE,
+    VALIDATION_INFLUENTIAL, VALIDATION_STEP, VALIDATION_ITERATIONS
+)
 
 color_even = "rgb(222, 221, 232, 0.5)"
 color_odd = "#FBFAF1"
@@ -101,25 +104,129 @@ def get_tabs():
 
 def get_tab_motivation():
     tab = html.Div([
+        html.H4([
+            "This dashboard attempts to combine the motivation behind",
+            html.Br(),
+            "Global Sensitivity Analysis of Life Cycle Assessment, ",
+            html.Br(),
+            "with necessary computations and visualization of the results - all in one place."],
+            style={"marginBottom": "40px", "color": "#C223BC", "textAlign": "center", "lineHeight": 1.6,
+                   "fontWeight": 500}),
         html.H2("So... what is life cycle assessment?"),
-        html.P("Life cycle assessment or LCA (also known as life cycle analysis) is a methodology for assessing "
-               "environmental impacts associated with all the stages of the life cycle of a commercial product, "
-               "process, or service. For instance, in the case of a manufactured product, environmental impacts are "
-               "assessed from raw material extraction and processing (cradle), through the product's manufacture, "
-               "distribution and use, to the recycling or final disposal of the materials composing it (grave).", ),
-        html.H2("Ok, how about global sensitivity analysis?"),
-        html.P("Sensitivity analysis is the study of how the uncertainty in the output of a mathematical model or "
-               "system (numerical or otherwise) can be divided and allocated to different sources of uncertainty in "
-               "its inputs.[1][2] A related practice is uncertainty analysis, which has a greater focus on uncertainty "
-               "quantification and propagation of uncertainty; ideally, uncertainty and sensitivity analysis should be "
-               "run in tandem."),
-        html.H2("But why do we need GSA of LCA?"),
-        html.P("Because of important reasons!")
+        dcc.Markdown(
+            '''
+            _Life Cycle Assessment (LCA)_ is a methodology for assessing environmental impacts associated with all the 
+            stages of the life cycle of a product, process or service. For instance, the impacts for manufacturing 
+            a product are assessed from raw material extraction and processing (cradle), through the product's 
+            manufacture, distribution and use, to the recycling or final disposal of the materials composing it (grave).
+            ''',
+            style={"marginBottom": "16px"}
+        ),
+        dcc.Markdown(
+            '''
+            LCA models are based on the analysis of complex supply chains and environmental processes. Naturally, 
+            they contain numerous uncertainties that can affect the interpretation of LCA results, and reduce our 
+            confidence in the environmental impact estimates.
+            ''',
+            style={"marginBottom": "40px"}
+        ),
+        html.H2("What can we do with the uncertainties?"),
+        dcc.Markdown(
+            "At the very least, we can try to understand how much they affect LCA results. For that, we conduct "
+            "_uncertainty analysis_ by first propagating uncertainties from LCA model inputs to the output, and then "
+            "analyzing the resulting distribution of Life Cycle Impact Assessment (LCIA) scores and robustness of the LCA.",
+            style={"marginBottom": "40px"}
+        ),
+        html.H2("Why is global sensitivity analysis needed?"),
+        html.P([
+            "For the following reasons:",
+            html.Ul([
+                html.Li("it allows us to understand the main uncertainty drivers in LCA models;"),
+                html.Li("it helps in prioritizing data collection, which eventually can reduce the overall uncertainty;"),
+                html.Li("it supports improved modelling of most important processes."),
+            ]),
+        ]),
+        dcc.Markdown(
+            "Formally, _sensitivity analysis_ is the study of how the uncertainty in the output of a model or system can be "
+            "allocated to different sources of uncertainty in its inputs.",
+            style={"marginBottom": "16px"}
+        ),
+        html.P([
+            "It refers to a family of methods that can determine, which varying or uncertain model inputs",
+            html.Ul([
+                html.Li("are important, or influential, meaning that they lead to most significant changes in the model output;"),
+                html.Li("are unimportant, or non-influential, namely, they can be fixed to any value in their range "
+                    "of variability without significantly affecting the model output."),
+            ]),
+        ]),
+        dcc.Markdown(
+            "For each model input, we compute _sensitivity index_ - quantitative measure of input's importance. Widely "
+            "used indices are correlation and regression coefficients, Sobol first and total order indices, Shapley "
+            "values, delta moment-independent indices.",
+            style={"marginBottom": "16px"}
+        ),
+        dcc.Markdown(
+            "_Global Sensitivity Analysis (GSA)_ means that the effect on the model output is studied by varying all "
+            "model inputs simultaneously, as opposed to the _local sensitivity analysis_, where each input is varied "
+            "one at a time. In LCA it is common to use the local analysis due to its simplicity, even though it is "
+            "only suitable for linear models.",
+            style={"marginBottom": "40px"}
+        ),
+        html.H2("What is an LCA model?"),
+        dcc.Markdown(
+            '''The matrix-based LCA model can be expressed as &nbsp $y = CBT^{-1}d$, &nbsp where''',
+            mathjax=True, style={"marginBottom": "16px"}
+        ),
+        html.Table([
+            html.Tr([
+                html.Td(dcc.Markdown('''$d \\in \\mathbb{R}^{n}$''', mathjax=True)),
+                html.Td(dcc.Markdown("Final demand vector")),
+                html.Td(dcc.Markdown("Selects the products, whose environmental impacts we aim to estimate.")),
+            ]),
+            html.Tr([
+                html.Td(dcc.Markdown('''$T \\in \\mathbb{R}^{n \\times n}$''', mathjax=True)),
+                html.Td(dcc.Markdown("Technology / &nbsp &nbsp &nbsp Technosphere matrix")),
+                html.Td(dcc.Markdown("Stores information about energy, material and waste flows of the considered $n$ "
+                                     "manufacturing processes. Each element in the matrix is called an intermediate "
+                                     "exchange.", mathjax=True)),
+            ]),
+            html.Tr([
+                html.Td(dcc.Markdown('''$B\\in \\mathbb{R}^{m \\times n}$''', mathjax=True)),
+                html.Td(dcc.Markdown("Intervention / &nbsp &nbsp &nbsp Biosphere matrix")),
+                html.Td(dcc.Markdown("Contains $m$ resources and emissions needed for or resulting from $n$ manufacturing "
+                                     "processes. Each element in the matrix is called an elementary exchange or "
+                                     "environmental flow.", mathjax=True)),
+            ]),
+            html.Tr([
+                html.Td(dcc.Markdown('''$C\\in \\mathbb{R}^{p \\times m}$''', mathjax=True)),
+                html.Td(dcc.Markdown("Characterization matrix")),
+                html.Td(dcc.Markdown("Consists of characterization factors that weigh $m$ resources and emissions to "
+                                     "compute environmental impacts for $p$ impact categories.", mathjax=True)),
+            ]),
+            html.Tr([
+                html.Td(dcc.Markdown('''$y\\in \\mathbb{R}^{p}$''', mathjax=True)),
+                html.Td(dcc.Markdown("Impact scores")),
+                html.Td(dcc.Markdown("Life cycle impact assessment (LCIA) results for $p$ impact categories.", mathjax=True)),
+            ]),
+        ], style={"marginBottom": "16px"}),
+        dcc.Markdown(
+            "For the sake of GSA we think of this model as &nbsp $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$, &nbsp where "
+            "&nbsp $\\mathbf{x} \\in \\mathbb{R}^{k}$ &nbsp is the vector of $k$ uncertain model inputs. Here we only consider "
+            "parameter uncertainty, and define as LCA model inputs uncertain intermediate exchanges, environmental flows and "
+            "characterization factors.",
+            mathjax=True, style={"marginBottom": "16px"}
+        ),
+        html.P(
+            "Notice that this model is linear with respect to environmental flows and characterization factors, "
+            "and non-linear in intermediate exchanges. Degree of model linearity is important, because it "
+            "determines which GSA methods can be used for a particular model."
+        ),
     ], className="tab-motivation")
     return tab
 
 
 def get_tab_uncertainty_propagation():
+    image_directory = os.getcwd() + 'latex_figures/monte_carlo.png'
     fig = plot_mc_simulations()
     mc_controls = get_mc_controls()
     progress = get_progress()
@@ -127,18 +234,37 @@ def get_tab_uncertainty_propagation():
         dbc.Row([
             dbc.Col(html.Div([
                 html.H2("Uncertainty propagation"),
-                html.P("In statistics, propagation of uncertainty (or propagation of error) is the effect of "
-                       "variables' uncertainties (or errors, more specifically random errors) on the uncertainty "
-                       "of a function based on them. When the variables are the values of experimental "
-                       "measurements they have uncertainties due to measurement limitations (e.g., instrument "
-                       "precision) which propagate due to the combination of variables in the function."),
-            ]), width=4, align="start"),
+                dcc.Markdown(
+                    '''
+                    In statistics, propagation of uncertainty (or propagation of error) is the effect of
+                    inputs' uncertainties on the uncertainty of a function $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$ 
+                    based on them. It can be conducted analytically using formulas or numerically with Monte Carlo 
+                    simulations. In LCA, it is common to use the latter. 
+                    ''', mathjax=True, style={"marginBottom": "16px"}
+                ),
+                dcc.Markdown(
+                    '''
+                    Uncertainty distributions for each model input can be defined using Brightway and stats_arrays Python
+                    package. Then for each model input, random samples are drawn from the predefined distributions, and 
+                    LCIA scores are computed. 
+                    
+                    The user can define number of `iterations N` and `random seed` to ensure 
+                    reproducibility of random samples. 
+                    
+                    ![Monte Carlo](https://upload.wikimedia.org/wikipedia/commons/b/b0/NewTux.svg)
+                    
+                    Define your LCA study in the menu above, then press `Start` to begin MC simulations! 
+                    
+                    '''
+                ),
+                html.Img(src=image_directory),
+            ]), width=5, align="start"),
             dbc.Col(html.Div([
                 html.H2("Monte Carlo simulations"),
                 mc_controls,
                 progress,
                 dcc.Graph(id='mc-graph', figure=fig),
-            ]), width=6, align="start"),
+            ]), width=5, align="start"),
         ], justify="evenly"),
     ], className="tab-propagation")
     return tab
@@ -170,7 +296,7 @@ def get_mc_controls():
 def get_progress():
     progress = html.Div([
         html.Label("Progress:"),
-        dcc.Interval(id="mc-progress-interval", n_intervals=0, interval=INTERVAL_TIME * 1000),
+        dcc.Interval(id="mc-interval", n_intervals=0, interval=INTERVAL_TIME * 1000),
         dbc.Progress(id="mc-progress", className="mc-progress", value=0, label="0%"),
     ], className="mc-progress-container")
     return progress
@@ -220,7 +346,8 @@ def get_tab_sensitivity_analysis():
                     style_data_conditional=get_style_data_conditional(color_even),
                 ),
             ),
-        ], justify="evenly", className="row-gsa")
+        ], justify="evenly", className="row-gsa"),
+        dcc.Store(id='sensitivity-indices'),
     ], className="tab-sensitivity", style={"width": "1460px"})
     return tab
 
@@ -236,7 +363,7 @@ def get_style_data_conditional(bg_color):
 
 
 def style_bars_in_datatable(df, column, color_bars=color_blue, bar_percentage_in_cell=70):
-    styles = get_style_data_conditional(color_even, column)
+    styles = get_style_data_conditional(color_even)
     values = df[column].values
     max_value = values.max()
     for i, val in enumerate(values):
@@ -263,15 +390,58 @@ def style_bars_in_datatable(df, column, color_bars=color_blue, bar_percentage_in
 
 
 def get_tab_gsa_validation():
-    tab = dbc.Card(
-        dbc.CardBody(
-            [
-                html.H2("Sensitivity results validation"),
-                dbc.Button("Don't click here", color="danger"),
-            ]
-        ),
-    )
+    fig = plot_validation(influential=VALIDATION_INFLUENTIAL)
+    validation_controls = get_validation_controls()
+    tab = html.Div([
+        dbc.Row([
+            html.H2("Validation of GSA results"),
+            dbc.Col(html.Div([
+                html.P("In statistics, propagation of uncertainty (or propagation of error) is the effect of "
+                       "variables' uncertainties (or errors, more specifically random errors) on the uncertainty "
+                       "of a function based on them. When the variables are the values of experimental "
+                       "measurements they have uncertainties due to measurement limitations (e.g., instrument "
+                       "precision) which propagate due to the combination of variables in the function."),
+            ]), width=4, align="start"),
+            dbc.Col([
+                html.P("some matrices")
+            ], width=4, align="start")
+        ], justify="evenly"),
+        dbc.Row([
+            dbc.Col(html.Div([
+                validation_controls,
+                dcc.Graph(id='val-graph', figure=fig),
+            ]), width=8, align="start"),
+        ], justify="evenly")
+    ], className="tab-validation")
     return tab
+
+
+def get_validation_controls():
+    mc_controls = html.Div([
+        html.Div([
+            html.Div([
+                html.Label("Max # influential inputs", className="label"),
+                dbc.Input(id="val-max-influential", value=VALIDATION_INFLUENTIAL, type="number")
+            ], className="val-max-influential"),
+            html.Div([
+                html.Label("Step", className="label"),
+                dbc.Input(id="val-step-influential", value=VALIDATION_STEP, type="number")
+            ], className="val-step-influential"),
+            html.Div([
+                html.Label("Iterations", className="label"),
+                dbc.Input(id="val-iterations", value=VALIDATION_ITERATIONS, type="number")
+            ], className="val-iterations"),
+            dcc.Store(id="val-directory"),
+            dcc.Store(id="val-state", data=0),
+            dcc.Store(id="val-finished", data=False),
+            dcc.Interval(id="val-interval", n_intervals=0, interval=INTERVAL_TIME * 1000),
+            dbc.Button("Start", id="btn-start-val", n_clicks=0, outline=False, color="primary",
+                       className="btn-start-val"),
+            dbc.Button("Cancel", id="btn-cancel-val", n_clicks=0, outline=False, color="warning",
+                       className="btn-cancel-val"),
+        ], className="val-controls-container")
+    ], className="val-controls")
+    return mc_controls
 
 
 def get_tab_summary():
@@ -310,3 +480,12 @@ def get_lca_mc_config(state_or_input):
     mc_config = get_mc_config(state_or_input)
     lca_mc_config = {**lca_config, **mc_config}
     return lca_mc_config
+
+
+def get_val_config(state_or_input):
+    val_config = dict(
+        max_influential=state_or_input('val-max-influential', 'value'),
+        step_influential=state_or_input("val-step-influential", "value"),
+        iterations=state_or_input("val-iterations", "value"),
+    )
+    return val_config

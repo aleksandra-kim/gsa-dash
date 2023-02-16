@@ -65,7 +65,7 @@ def collect_Y(Y_files):
 def collect_XY(directory):
     directory = Path(directory)
     files = list(directory.iterdir())
-    Y_files = sorted([f for f in files if "Y" in f.name])
+    Y_files = sorted([f for f in files if "Y" in f.name and "inf" not in f.name])
     Y, X = [], []
     for Y_file in Y_files:
         X_file = directory / Y_file.name.replace("Y", "X")
@@ -75,3 +75,18 @@ def collect_XY(directory):
         Y = Y + Y_data
         X = X + X_data
     return np.array(X), np.array(Y)
+
+
+def collect_Y_validation(val_directory):
+    val_directory = Path(val_directory)
+    files = list(val_directory.iterdir())
+    Y_files = sorted([f for f in files if "Yinf" in f.name])
+    Y = dict()
+    for Y_file in Y_files:
+        Yinf = read_json(val_directory / Y_file)
+        current_inf = int(Y_file.stem.split("Yinf")[1])
+        Y[current_inf] = np.array(Yinf)
+        iterations = len(Yinf)  # TODO needs to be implemented better, possibly with a class
+    _, Yall = collect_XY(val_directory.parent)
+    Y["all"] = Yall[:iterations]
+    return Y

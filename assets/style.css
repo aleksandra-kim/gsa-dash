@@ -43,40 +43,50 @@ h2 {
     margin-bottom: 20px;
 }
 
-p {
-    font-size: 20px;
-    font-weight: 380;
-    margin-bottom: 32px;
-}
-
 h3 {
     font-size: 28px;
     margin-block-start: 0px;
     margin-block-end: 60px;
 }
 
+p {
+    font-size: 20px;
+    font-weight: 380;
+    margin-bottom: 0;
+    text-align: justify;
+}
+
+td {
+    padding-right: 20px;
+}
+
+tr {
+    border-bottom: 1px solid #bbb;
+    border-top: 1px solid #bbb;
+}
+
 .top-controls {
     padding: 24px 0;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #bbb;
     box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
     background: white;
     display: flex;
     justify-content: space-between;
 }
 
-.mc-controls {
+.mc-controls, .val-controls {
     display: flex;
     justify-content: space-between;
 }
 
-.top-controls-container, .mc-controls-container {
+.top-controls-container, .mc-controls-container, .val-controls-container {
     display: flex;
     justify-content: space-between;
     margin-left: auto;
     margin-right: auto;
 }
 
-.mc-controls-container {
+.mc-controls-container, .val-controls-container {
     align-items: center;
 }
 
@@ -112,12 +122,21 @@ h3 {
     display: block;
 }
 
-.control-iterations, .control-random-seed {
+.control-val-influential, .control-val-step, .btn-start-val, .btn-cancel-val {
+    flex-grow: 1;
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-top: 6px;
+    margin-bottom: 6px;
+    display: block;
+}
+
+.control-iterations, .control-random-seed, .control-val-influential, .control-val-step {
     max-width: 140px;
     min-width: 140px;
 }
 
-.btn-start-mc, .btn-cancel-mc {
+.btn-start-mc, .btn-cancel-mc, .btn-start-val, .btn-cancel-val  {
     max-width: 100px;
     min-width: 100px;
     height: 40px;
@@ -139,12 +158,6 @@ h3 {
     margin-top: 24px;
 }
 
-.Select-control {
-    border: 0px;
-    border-bottom: 1px solid #ddd;
-    border-radius: 0px;
-}
-
 .label {
     margin-left: 0px;
 }
@@ -162,13 +175,19 @@ h3 {
     display: none !important;
 }
 
+.Select-control {
+    border: 0 !important;
+    border-bottom: 1px solid #bbb !important;
+    border-radius: 0px !important;
+}
+
 .form-control {
     padding-left: 0px;
     padding-right: 0px;
     padding-top: 0px;
     margin-top: 6px;
     border: 0px;
-    border-bottom: 1px solid #ddd;
+    border-bottom: 1px solid #bbb;
     box-shadow: 0px 0px 0px rgba(0, 0, 0, 0.25);
     background-color: rgba(0, 0, 0, 0);
 }
@@ -213,7 +232,7 @@ h3 {
 .tab-motivation{
     display: block;
     flex-grow: 1;
-    width: 800px;
+    width: 1100px;
 }
 
 .tab-propagation{
@@ -245,4 +264,8 @@ h3 {
 
 .linearity-graph {
     height: 17vh;
+}
+
+.break-line {
+    height: 40px;
 }
