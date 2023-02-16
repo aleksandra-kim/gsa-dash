@@ -242,8 +242,11 @@ def get_tab_uncertainty_propagation():
                     simulations. In LCA, it is common to use the latter. 
                     ''', mathjax=True, style={"marginBottom": "16px"}
                 ),
-                html.Img(src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/79e10a768f0d4bb751946364344da867b29da267/latex_images/monte_carlo.svg",
-                         style={"width": "75%", "align": "center", "marginBottom": "16px"}),
+                html.P(html.Img(
+                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/fdcda511bc55f87e9067366d5b5514244488109b/latex_images/monte_carlo.svg",
+                    style={"width": "80%"}
+                    ), style={"marginBottom": "16px", "textAlign": "center"}
+                ),
                 dcc.Markdown(
                     '''
                     For each simulation, random samples are drawn from the predefined input distributions, and 
