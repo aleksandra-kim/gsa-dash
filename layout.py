@@ -251,7 +251,7 @@ def get_tab_uncertainty_propagation():
                     The user can define number of `iterations N` and `random seed` to ensure 
                     reproducibility of random samples. 
                     
-                    ![Monte Carlo](https://upload.wikimedia.org/wikipedia/commons/b/b0/NewTux.svg)
+                    ![Monte Carlo](https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/b669f3a8a8fde48679dc8606a254781925fc6c87/latex_images/monte_carlo.svg)
                     
                     Define your LCA study in the menu above, then press `Start` to begin MC simulations! 
                     
