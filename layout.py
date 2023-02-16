@@ -238,26 +238,23 @@ def get_tab_uncertainty_propagation():
                     '''
                     In statistics, propagation of uncertainty (or propagation of error) is the effect of
                     inputs' uncertainties on the uncertainty of a function $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$ 
-                    based on them. It can be conducted analytically using formulas or numerically with Monte Carlo 
+                    based on them. It can be conducted analytically using formulas or numerically with Monte Carlo (MC) 
                     simulations. In LCA, it is common to use the latter. 
                     ''', mathjax=True, style={"marginBottom": "16px"}
                 ),
+                html.Img(src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/79e10a768f0d4bb751946364344da867b29da267/latex_images/monte_carlo.svg",
+                         style={"width": "75%", "align": "center", "marginBottom": "16px"}),
                 dcc.Markdown(
                     '''
-                    Uncertainty distributions for each model input can be defined using Brightway and stats_arrays Python
-                    package. Then for each model input, random samples are drawn from the predefined distributions, and 
-                    LCIA scores are computed. 
-                    
-                    The user can define number of `iterations N` and `random seed` to ensure 
+                    For each simulation, random samples are drawn from the predefined input distributions, and 
+                    LCIA scores are computed. The user can define number of `iterations N` and `random seed` to ensure 
                     reproducibility of random samples.                     
-                    '''
+                    ''', style={"marginBottom": "16px"}
                 ),
-                html.Img(src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/2f5bf222eabbde5da6ef07a91858017d6ce7b277/latex_images/monte_carlo.svg",
-                         style={"width": "100%"}),
                 dcc.Markdown(
                     '''                                       
                     Define your LCA study in the menu above, then press `Start` to begin MC simulations! 
-                    '''
+                    ''', style={"textAlign": "center"}
                 ),
             ]), width=5, align="start"),
             dbc.Col(html.Div([
