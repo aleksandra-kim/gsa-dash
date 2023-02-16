@@ -314,8 +314,8 @@ def get_tab_sensitivity_analysis():
                     ''', style={"marginBottom": "16px"}
                 ),
                 html.P(html.Img(
-                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
-                    style={"width": "85%"}
+                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/efa24513496ecdd6a1924105fd7f4df5cacb18f0/latex_images/sensitivity_indices.svg",
+                    style={"width": "60%"}
                     ), style={"marginBottom": "16px", "textAlign": "center"}
                 ),
                 dcc.Markdown(
@@ -340,7 +340,7 @@ def get_tab_sensitivity_analysis():
                 ),
                 dcc.Graph(id='linearity-graph', figure=fig_model_linearity, className="linearity-graph"),
             ]), width=5, align="start"),
-        ], justify="evenly", className="row-gsa", style={"marginBottom": "24px"}),
+        ], justify="evenly", className="row-gsa", style={"marginBottom": "60px"}),
         dbc.Col(html.H2("Influential model inputs, aka GSA results")),
         dbc.Row([
             dbc.Col(

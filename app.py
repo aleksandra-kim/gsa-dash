@@ -195,8 +195,8 @@ def plot_sensitivity_results(n_intervals, mc_finished, directory, lca_config, un
             project, sensitivity_indices, contributions, indices, sensitivity_method,
         )
         df = create_table_gsa_ranking(sensitivity_data, PAGE_SIZE)
-        bar_styles_gsa = style_bars_in_datatable(df, 'GSA index')
-        bar_styles_ca = style_bars_in_datatable(df, "Contribution")
+        bar_styles_gsa = style_bars_in_datatable(df, 'GSA index', color_bars="#5757E5")
+        bar_styles_ca = style_bars_in_datatable(df, "Contribution", color_bars="#A3C7B8")
         df_data = df.to_dict("records")
         contribution_column = f"Contribution \n {unit}"
         columns = [{"name": i if "Contribution" not in i else contribution_column, "id": i} for i in df.columns]
