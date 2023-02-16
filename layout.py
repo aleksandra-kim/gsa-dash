@@ -110,8 +110,8 @@ def get_tab_motivation():
             "Global Sensitivity Analysis of Life Cycle Assessment, ",
             html.Br(),
             "with necessary computations and visualization of the results - all in one place."],
-            style={"marginBottom": "40px", "color": "#DA640F", "textAlign": "center", "lineHeight": 1.6,
-                   "fontWeight": 500}),
+            style={"marginBottom": "40px", "color": "#FF5C00", "textAlign": "center", "lineHeight": 1.6,
+                   "fontWeight": 520}),
         html.H2("So... what is life cycle assessment?"),
         dcc.Markdown(
             '''
@@ -241,7 +241,7 @@ def get_tab_uncertainty_propagation():
                 ),
                 html.P(html.Img(
                     src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
-                    style={"width": "85%"}
+                    style={"width": "92%"}
                     ),
                     style={"marginBottom": "16px", "textAlign": "center"}
                 ),
@@ -453,50 +453,64 @@ def get_tab_gsa_validation():
                     ''',
                     mathjax=True, style={"marginBottom": "16px"}
                 ),
-                html.P([
-                    html.Ul([
-                        html.Li([
-                            "LCIA scores when all model inputs vary",
-                            html.Br(),
-                            html.Img(
-                                src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
-                                style={"width": "85%"}
-                            )
-                        ]),
-                        html.Li([
-                            "LCIA scores when only influential inputs vary",
-                            html.Br(),
-                            html.Img(
-                                src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
-                                style={"width": "85%"}
-                            )
-                        ]),
-                    ]),
-                ]),
+                # html.P(html.Ul(html.Li("LCIA scores when all model inputs vary"))),
+                # html.P(html.Img(
+                #     src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_all.svg",
+                #     style={"width": "60%"}
+                #     ),
+                #     style={"marginBottom": "16px", "textAlign": "center"}
+                # ),
+                # html.P(html.Ul(html.Li("LCIA scores when only influential inputs vary"))),
+                # html.P(html.Img(
+                #     src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_inf.svg",
+                #     style={"width": "64%"}
+                #     ),
+                #     style={"marginBottom": "16px", "textAlign": "center"}
+                # ),
                 html.Table([
                     html.Tr([
-                        html.Td(dcc.Markdown("LCIA scores when all model inputs vary", mathjax=True)),
+                        html.Td(
+                            dcc.Markdown("$\\bullet$ LCIA scores when all model inputs vary", mathjax=True),
+                            style={"width": "35%", "verticalAlign": "top"}
+                        ),
                         html.Td(html.Img(
-                            src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
+                            src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_all.svg",
                             style={"width": "100%"}
-                        )),
-                    ]),
+                        ), style={"width": "45%"}),
+                    ], style={"border": 0}),
+                    html.Br(),
                     html.Tr([
-                        html.Td(dcc.Markdown("LCIA scores when only influential inputs vary", mathjax=True)),
+                        html.Td([
+                            dcc.Markdown(
+                                '''
+                                $\\bullet$ LCIA scores when only influential inputs vary"
+                                ''',
+                                mathjax=True, style={"marginBottom": "80px"},
+                            ),
+                            dcc.Markdown(
+                                '''                                
+                                If the correlation between $Y_{\\text{all}}$ and $Y_{\\text{inf}}$ is close to 1, then 
+                                we can conclude that the influential inputs were identified correctly.
+                                ''',
+                                mathjax=True
+                            )],
+                            style={"verticalAlign": "top"}
+                        ),
                         html.Td(html.Img(
-                            src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/8a21e5fe8499ce12a00e54a233574f30b76ee01b/latex_images/monte_carlo.svg",
+                            src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_inf.svg",
                             style={"width": "100%"}
                         )),
-                    ]),
-                ], style={"marginBottom": "16px"}),
-                dcc.Markdown(
-                    '''
-                    If the correlation between $Y_{\\text{all}}$ and $Y_{\\text{inf}}$ is close to 1, then we can 
-                    conclude that the influential inputs were identified correctly.
-                    ''',
-                    mathjax=True, style={"marginBottom": "16px"}
-                ),
-            ]), width=5, align="start"),
+                    ], style={"marginBottom": "16px", "border": 0}),
+                    html.Br(),
+                ]),
+                # dcc.Markdown(
+                #     '''
+                #     If the correlation between $Y_{\\text{all}}$ and $Y_{\\text{inf}}$ is close to 1, then we can
+                #     conclude that the influential inputs were identified correctly.
+                #     ''',
+                #     mathjax=True, style={"marginBottom": "16px"}
+                # ),
+            ]), width=6, align="start"),
             dbc.Col(html.Div([
                 html.H2("MC simulations for GSA validation"),
                 html.P(
@@ -505,41 +519,14 @@ def get_tab_gsa_validation():
                 ),
                 val_controls,
                 dcc.Graph(id='val-graph', figure=fig),
-            ]), width=6, align="start"),
+            ]), width=5, align="start"),
         ], justify="evenly"),
-    ], className="tab-propagation")
-    return tab
-
-
-def get_tab_gsa_validation0():
-    fig = plot_validation(influential=VALIDATION_INFLUENTIAL)
-    validation_controls = get_validation_controls()
-    tab = html.Div([
-        dbc.Row([
-            html.H2("Validation of GSA results"),
-            dbc.Col(html.Div([
-                html.P("In statistics, propagation of uncertainty (or propagation of error) is the effect of "
-                       "variables' uncertainties (or errors, more specifically random errors) on the uncertainty "
-                       "of a function based on them. When the variables are the values of experimental "
-                       "measurements they have uncertainties due to measurement limitations (e.g., instrument "
-                       "precision) which propagate due to the combination of variables in the function."),
-            ]), width=4, align="start"),
-            dbc.Col([
-                html.P("some matrices")
-            ], width=4, align="start")
-        ], justify="evenly"),
-        dbc.Row([
-            dbc.Col(html.Div([
-                validation_controls,
-                dcc.Graph(id='val-graph', figure=fig),
-            ]), width=8, align="start"),
-        ], justify="evenly")
     ], className="tab-validation")
     return tab
 
 
 def get_validation_controls():
-    mc_controls = html.Div([
+    val_controls = html.Div([
         html.Div([
             html.Div([
                 html.Label("Max # influential inputs", className="label"),
@@ -557,13 +544,15 @@ def get_validation_controls():
             dcc.Store(id="val-state", data=0),
             dcc.Store(id="val-finished", data=False),
             dcc.Interval(id="val-interval", n_intervals=0, interval=INTERVAL_TIME * 1000),
+        ], className="val-controls-container"),
+        html.Div([
             dbc.Button("Start", id="btn-start-val", n_clicks=0, outline=False, color="primary",
                        className="btn-start-val"),
             dbc.Button("Cancel", id="btn-cancel-val", n_clicks=0, outline=False, color="warning",
                        className="btn-cancel-val"),
         ], className="val-controls-container")
     ], className="val-controls")
-    return mc_controls
+    return val_controls
 
 
 def get_tab_summary():
