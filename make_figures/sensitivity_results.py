@@ -5,16 +5,16 @@ import numpy as np
 from .utils import get_figure_layout
 
 
-def plot_model_linearity(linearity=None, linearity_threshold=0.8):
+def plot_model_linearity(linearity=None, linearity_threshold=0.8, iterations_default=None):
     data = []
     layout = get_figure_layout()
     data.append(dict(
-        type="scatter", x=[0, 10], y=[1, 1],
+        type="scatter", x=[0, iterations_default], y=[1, 1],
         mode="lines", line=dict(color="red", dash="dash"),
         name="Perfectly linear model", showlegend=True,
     ))
     data.append(dict(
-        type="scatter", x=[0, 10], y=[linearity_threshold, linearity_threshold],
+        type="scatter", x=[0, iterations_default], y=[linearity_threshold, linearity_threshold],
         mode="lines", line=dict(color="orange", dash="dash"),
         name="Linearity threshold", showlegend=True,
     ))
@@ -36,10 +36,12 @@ def plot_model_linearity(linearity=None, linearity_threshold=0.8):
 
     if linearity is not None:
         iterations = list(linearity.keys())
+        y = list(linearity.values())
         data[0]["x"] = [0, iterations[-1]]
         data[1]["x"] = [0, iterations[-1]]
         data[2]["x"] = iterations
-        data[2]["y"] = list(linearity.values())
+        data[2]["y"] = y
+        layout.update(yaxis=dict(range=[-0.1, max(y)+0.2]))
 
     return dict(data=data, layout=layout)
 

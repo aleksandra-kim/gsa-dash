@@ -1,4 +1,3 @@
-from copy import deepcopy
 import numpy as np
 import bw_processing as bwp
 import bw2data as bd
@@ -18,14 +17,15 @@ def run_validation(val_directory, S, val_config, lca_config):
     S = np.array(S)
     descending_argsort = np.argsort(S)[-1::-1]
 
-    max_inf, step_inf, iterations = val_config["max_influential"], val_config["step_influential"], val_config["iterations"]
+    min_inf, max_inf, step_inf, iterations = val_config["val_min"], val_config["val_max"], \
+                                             val_config["val_step"], val_config["val_iterations"]
 
     project, database, activity, amount, method = lca_config["project"], lca_config["database"], \
                                                   lca_config["activity"], lca_config["amount"], lca_config["method"]
     bw_activity, method = get_bw_activity_and_method(project, database, activity, method)
     bd.projects.set_current(project)
 
-    for current_inf in range(step_inf, max_inf+step_inf, step_inf):
+    for current_inf in range(min_inf, max_inf+step_inf, step_inf):
         fp_inf = val_directory / f"Yinf{current_inf:04d}.json"
         if not fp_inf.exists():
             mask_inf = descending_argsort[:current_inf]
@@ -37,7 +37,6 @@ def run_validation(val_directory, S, val_config, lca_config):
 def collect_validation_results(directory):
     directory = Path(directory)
     Y = collect_Y_validation(directory)
-    print(Y)
     Yall = Y.pop("all")
     metric = dict()
     for current_inf, Yinf in Y.items():

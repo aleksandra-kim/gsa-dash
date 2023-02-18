@@ -5,7 +5,7 @@ import dash_bootstrap_components as dbc
 from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking, plot_validation
 from constants import (
     ITERATIONS, SEED, INTERVAL_TIME, LINEARITY_THRESHOLD, PAGE_SIZE,
-    VALIDATION_INFLUENTIAL, VALIDATION_STEP, VALIDATION_ITERATIONS
+    VALIDATION_MIN, VALIDATION_MAX, VALIDATION_STEP, VALIDATION_ITERATIONS
 )
 
 color_even = "rgb(222, 221, 232, 0.5)"
@@ -76,7 +76,8 @@ def get_top_controls():
                     html.Span(id="score", className="score"),
                     html.Span(id="method-unit", className="method-unit")
                 ], className="score-unit")
-            ], className="output-lcia")
+            ], className="output-lcia"),
+            # html.Div(children=dbc.Spinner(color="primary"), id="loading")
         ], className="top-controls-container"),
     ], className="top-controls")
     return top_controls
@@ -87,7 +88,7 @@ def get_tabs():
     tab2_content = get_tab_uncertainty_propagation()
     tab3_content = get_tab_sensitivity_analysis()
     tab4_content = get_tab_gsa_validation()
-    tab5_content = get_tab_summary()
+    # tab5_content = get_tab_summary()
     tabs = dbc.Tabs(
         active_tab="tab-propagation",
         children=[
@@ -95,7 +96,7 @@ def get_tabs():
             dbc.Tab(tab2_content, className="tab-content", label="Uncertainty propagation", tab_id="tab-propagation"),
             dbc.Tab(tab3_content, className="tab-content", label="Global sensitivity analysis"),
             dbc.Tab(tab4_content, className="tab-content", label="GSA validation"),
-            dbc.Tab(tab5_content, className="tab-content", label="Summary"),
+            # dbc.Tab(tab5_content, className="tab-content", label="Summary"),
         ],
         className="tabs-container"
     )
@@ -115,7 +116,7 @@ def get_tab_motivation():
         html.H2("So... what is life cycle assessment?"),
         dcc.Markdown(
             '''
-            `Life Cycle Assessment (LCA)` is a methodology for assessing environmental impacts associated with all the 
+            __Life Cycle Assessment (LCA)__ is a methodology for assessing environmental impacts associated with all the 
             stages of the life cycle of a product, process or service. For instance, the impacts for manufacturing 
             a product are assessed from raw material extraction and processing (cradle), through the product's 
             manufacture, distribution and use, to the recycling or final disposal of the materials composing it (grave).
@@ -134,7 +135,7 @@ def get_tab_motivation():
         dcc.Markdown(
             '''
             At the very least, we can try to understand how much they affect LCA results. For that, we conduct 
-            `uncertainty analysis` by first propagating uncertainties from LCA model inputs to the output, and then 
+            __uncertainty analysis__ by first propagating uncertainties from LCA model inputs to the output, and then 
             analyzing the resulting distribution of Life Cycle Impact Assessment (LCIA) scores and robustness of the LCA.
             ''',
             style={"marginBottom": "40px"}
@@ -142,31 +143,42 @@ def get_tab_motivation():
         html.H2("Why is global sensitivity analysis needed?"),
         html.P([
             "For the following reasons:",
-            html.Ul([
-                html.Li("it allows us to understand the main uncertainty drivers in LCA models;"),
-                html.Li("it helps in prioritizing data collection, which eventually can reduce the overall uncertainty;"),
-                html.Li("it supports improved modelling of most important processes."),
-            ]),
+            dcc.Markdown(
+                "&nbsp $\\circ$ &nbsp it allows us to understand the main uncertainty drivers in LCA models;",
+                mathjax=True,
+            ),
+            dcc.Markdown(
+                "&nbsp $\\circ$ &nbsp it helps in prioritizing data collection, which eventually can reduce the overall uncertainty;",
+                mathjax=True,
+            ),
+            dcc.Markdown(
+                "&nbsp $\\circ$ &nbsp it supports improved modelling of most important processes.",
+                mathjax=True, style={"marginBottom": "16px"}
+            ),
         ]),
         dcc.Markdown(
             '''
-            Formally, `sensitivity analysis` is the study of how the uncertainty in the output of a model or system can be 
+            Formally, __sensitivity analysis__ is the study of how the uncertainty in the output of a model or system can be 
             allocated to different sources of uncertainty in its inputs.
             ''',
             style={"marginBottom": "16px"}
         ),
         html.P([
             "It refers to a family of methods that can determine, which varying or uncertain model inputs",
-            html.Ul([
-                html.Li("are `influential`, meaning that they lead to most significant changes in the model output;"),
-                html.Li("are `non-influential`, namely, they can be fixed to any value in their range of variability "
-                        "without significantly affecting the model output."),
-            ]),
+            dcc.Markdown(
+                "&nbsp $\\circ$ &nbsp are __influential__, meaning that they lead to most significant changes in the model output;",
+                mathjax=True,
+            ),
+            dcc.Markdown(
+                "&nbsp $\\circ$ &nbsp are __non-influential__, namely, they can be fixed to any value in their range  "
+                "without significantly affecting the model output.",
+                mathjax=True, style={"marginBottom": "16px"}
+            ),
         ]),
         dcc.Markdown(
             '''
-            `Global Sensitivity Analysis (GSA)` means that the effect on the model output is studied by varying all 
-            model inputs simultaneously, as opposed to the `local sensitivity analysis`, where each input is varied 
+            __Global Sensitivity Analysis (GSA)__ means that the effect on the model output is studied by varying all 
+            model inputs simultaneously, as opposed to the __local sensitivity analysis__, where each input is varied 
             one at a time. In LCA it is common to use the local analysis due to its simplicity, even though it is 
             only suitable for linear models.
             ''',
@@ -213,7 +225,7 @@ def get_tab_motivation():
             '''
             For the sake of GSA we think of this model as &nbsp $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$, &nbsp where 
             &nbsp $\\mathbf{x} \\in \\mathbb{R}^{k}$ &nbsp is the vector of $k$ uncertain model inputs. Here we only consider 
-            `parameter uncertainty`, and define as LCA model inputs uncertain intermediate exchanges, environmental flows and 
+            __parameter uncertainty__, and define as LCA model inputs uncertain intermediate exchanges, environmental flows and 
             characterization factors.
             ''',
             mathjax=True, style={"marginBottom": "16px"}
@@ -240,8 +252,8 @@ def get_tab_uncertainty_propagation():
                     mathjax=True, style={"marginBottom": "16px"}
                 ),
                 html.P(html.Img(
-                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/15869fb6779334105e66bdccd46559fe733831ab/latex_images/monte_carlo.svg",
-                    style={"width": "92%"}
+                    src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/a0a4c318b84cfe56032381fce8299b6d7450df85/latex_images/monte_carlo.svg",
+                    style={"width": "95%"}
                     ),
                     style={"marginBottom": "16px", "textAlign": "center"}
                 ),
@@ -277,6 +289,10 @@ def get_mc_controls():
                 dbc.Input(id="iterations", value=ITERATIONS, type="number")
             ], className="control-iterations"),
             html.Div([
+                html.Label("Iterations chunk", className="label"),
+                dbc.Input(id="iterations-chunk", value=ITERATIONS // 10, type="number")
+            ], className="control-iterations-chunk"),
+            html.Div([
                 html.Label("Random seed", className="label"),
                 dbc.Input(id="seed", value=SEED, type="number")
             ], className="control-random-seed"),
@@ -302,7 +318,7 @@ def get_progress():
 
 
 def get_tab_sensitivity_analysis():
-    fig_model_linearity = plot_model_linearity(linearity_threshold=LINEARITY_THRESHOLD)
+    fig_model_linearity = plot_model_linearity(linearity_threshold=LINEARITY_THRESHOLD, iterations_default=ITERATIONS)
     df = create_table_gsa_ranking()
     df_data = df.to_dict("records")
     columns = [{"name": i, "id": i} for i in df.columns]
@@ -369,9 +385,13 @@ def get_tab_sensitivity_analysis():
             dcc.Markdown(
                     '''
                     The table below lists influential model inputs, ranked with GSA. It also shows the contributions of
-                    each model input to the total deterministic LCIA score to help interpret the results.  
+                    each model input to the total deterministic LCIA score to show what is important in the
+                    deterministic LCA model. Note that __inputs with low contributions might still be influential in the 
+                    GSA sense__, in case they have wide uncertainty distribution or depending on how they interact with 
+                    other varying inputs. While contribution analysis helps interpret the results, it is important to 
+                    remember about its static nature, as compared to GSA, where uncertainty in inputs is the key. 
                     ''',
-                mathjax=True, style={"marginBottom": "16px", "width": "75%"}
+                mathjax=True, style={"marginBottom": "16px", "width": "100%"}
                 ),
             dbc.Col(
                 dash_table.DataTable(
@@ -379,7 +399,8 @@ def get_tab_sensitivity_analysis():
                     style_table={"font-family": "sans-serif", "borderBottom": f'1px solid {color_light_purple}',
                                  'textOverflow': 'ellipsis'},
                     style_header={'backgroundColor': f'{color_light_purple}', 'textAlign': 'center',
-                                  "font-family": "sans-serif", "font-size": "16px", "font-weight": "bold"},
+                                  "font-family": "sans-serif", "font-size": "16px", "font-weight": 550,
+                                  "color": "black"},
                     style_cell={"backgroundColor": color_none, 'textAlign': 'left', 'whiteSpace': 'pre-line',
                                 'overflow': 'hidden', 'textOverflow': 'ellipsis'},
                     style_cell_conditional=[
@@ -439,7 +460,7 @@ def style_bars_in_datatable(df, column, color_bars=color_blue, bar_percentage_in
 
 
 def get_tab_gsa_validation():
-    fig = plot_validation(influential=VALIDATION_INFLUENTIAL)
+    fig = plot_validation(min_influential=VALIDATION_MIN, max_influential=VALIDATION_MAX)
     val_controls = get_validation_controls()
     tab = html.Div([
         dbc.Row([
@@ -453,25 +474,11 @@ def get_tab_gsa_validation():
                     ''',
                     mathjax=True, style={"marginBottom": "16px"}
                 ),
-                # html.P(html.Ul(html.Li("LCIA scores when all model inputs vary"))),
-                # html.P(html.Img(
-                #     src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_all.svg",
-                #     style={"width": "60%"}
-                #     ),
-                #     style={"marginBottom": "16px", "textAlign": "center"}
-                # ),
-                # html.P(html.Ul(html.Li("LCIA scores when only influential inputs vary"))),
-                # html.P(html.Img(
-                #     src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_inf.svg",
-                #     style={"width": "64%"}
-                #     ),
-                #     style={"marginBottom": "16px", "textAlign": "center"}
-                # ),
                 html.Table([
                     html.Tr([
                         html.Td(
-                            dcc.Markdown("$\\bullet$ LCIA scores when all model inputs vary", mathjax=True),
-                            style={"width": "35%", "verticalAlign": "top"}
+                            dcc.Markdown('''$\\bullet$ LCIA scores when all model inputs vary;''', mathjax=True),
+                            style={"width": "40%", "verticalAlign": "top"}
                         ),
                         html.Td(html.Img(
                             src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_all.svg",
@@ -483,19 +490,12 @@ def get_tab_gsa_validation():
                         html.Td([
                             dcc.Markdown(
                                 '''
-                                $\\bullet$ LCIA scores when only influential inputs vary"
+                                $\\bullet$ LCIA scores when influential inputs vary such that they take the same values 
+                                as in the above case, while the non-influential inputs are set to their prescribed values.
                                 ''',
                                 mathjax=True, style={"marginBottom": "80px"},
                             ),
-                            dcc.Markdown(
-                                '''                                
-                                If the correlation between $Y_{\\text{all}}$ and $Y_{\\text{inf}}$ is close to 1, then 
-                                we can conclude that the influential inputs were identified correctly.
-                                ''',
-                                mathjax=True
-                            )],
-                            style={"verticalAlign": "top"}
-                        ),
+                        ],  style={"verticalAlign": "top"}),
                         html.Td(html.Img(
                             src="https://raw.githubusercontent.com/aleksandra-kim/gsa-dash/993ea4be4ae182729736c618b4a56ace4009a3b1/latex_images/validation_inf.svg",
                             style={"width": "100%"}
@@ -503,55 +503,73 @@ def get_tab_gsa_validation():
                     ], style={"marginBottom": "16px", "border": 0}),
                     html.Br(),
                 ]),
-                # dcc.Markdown(
-                #     '''
-                #     If the correlation between $Y_{\\text{all}}$ and $Y_{\\text{inf}}$ is close to 1, then we can
-                #     conclude that the influential inputs were identified correctly.
-                #     ''',
-                #     mathjax=True, style={"marginBottom": "16px"}
-                # ),
-            ]), width=6, align="start"),
-            dbc.Col(html.Div([
-                html.H2("MC simulations for GSA validation"),
-                html.P(
-                    "Define LCA study in the menu above, then start MC simulations to validate GSA!",
-                    style={"marginBottom": "16px", "textAlign": "center"}
+                dcc.Markdown(
+                    '''                                
+                    If the correlation between $Y_{\\text{all}}$ and $Y_{\\text{inf}}$ is close to 1, it 
+                    means that by varying only influential inputs, the overall LCIA scores distribution is
+                    reasonably captured. Hence, the influential inputs were identified correctly. Otherwise, more MC 
+                    simulations are needed.
+                    ''',
+                    mathjax=True
                 ),
-                val_controls,
-                dcc.Graph(id='val-graph', figure=fig),
-            ]), width=5, align="start"),
+            ]), width=6, align="start"),
+            dbc.Col(html.Div(
+                [
+                    html.H2("MC simulations for GSA validation"),
+                    dcc.Markdown(
+                        '''
+                        To determine how many inputs capture the overall LCIA scores distribution sufficiently, we run 
+                        additional MC simulations for the increasing number of ranked influential inputs. Specify below 
+                        the minimum, maximum and step for the number of influential inputs to test.
+                        ''',
+                        style={"marginBottom": "16px", "textAlign": "center"}
+                    ),
+                ] +
+                val_controls +
+                [dcc.Graph(id='val-graph', figure=fig, className="val-graph")]
+            ), width=5, align="start"),
         ], justify="evenly"),
     ], className="tab-validation")
     return tab
 
 
 def get_validation_controls():
-    val_controls = html.Div([
+    slider_inputs = html.Div([
         html.Div([
-            html.Div([
-                html.Label("Max # influential inputs", className="label"),
-                dbc.Input(id="val-max-influential", value=VALIDATION_INFLUENTIAL, type="number")
-            ], className="val-max-influential"),
-            html.Div([
-                html.Label("Step", className="label"),
-                dbc.Input(id="val-step-influential", value=VALIDATION_STEP, type="number")
-            ], className="val-step-influential"),
-            html.Div([
-                html.Label("Iterations", className="label"),
-                dbc.Input(id="val-iterations", value=VALIDATION_ITERATIONS, type="number")
-            ], className="val-iterations"),
-            dcc.Store(id="val-directory"),
-            dcc.Store(id="val-state", data=0),
-            dcc.Store(id="val-finished", data=False),
-            dcc.Interval(id="val-interval", n_intervals=0, interval=INTERVAL_TIME * 1000),
-        ], className="val-controls-container"),
+            html.Label("Inputs min", className="label"),
+            dbc.Input(id="val-min", value=VALIDATION_MIN, type="number")
+        ], className="val-min"),
         html.Div([
-            dbc.Button("Start", id="btn-start-val", n_clicks=0, outline=False, color="primary",
-                       className="btn-start-val"),
-            dbc.Button("Cancel", id="btn-cancel-val", n_clicks=0, outline=False, color="warning",
-                       className="btn-cancel-val"),
-        ], className="val-controls-container")
-    ], className="val-controls")
+            html.Label("Inputs max", className="label"),
+            dbc.Input(id="val-max", value=VALIDATION_MAX, type="number")
+        ], className="val-max"),
+        html.Div([
+            html.Label("Inputs step", className="label"),
+            dbc.Input(id="val-step", value=VALIDATION_STEP, type="number")
+        ], className="val-step"),
+    ], className="val-controls-container")
+    # slider = html.Div(html.Div(
+    #         dcc.RangeSlider(
+    #             VALIDATION_MIN, VALIDATION_MAX, VALIDATION_STEP, value=[VALIDATION_MIN, VALIDATION_MAX],
+    #             id='val-slider', className="val-slider",
+    #         ), className="val-controls-container"
+    #     ), className="val-controls"
+    # )
+    iterations_inputs = html.Div([
+        html.Div([
+            html.Label("Iterations", className="label"),
+            dbc.Input(id="val-iterations", value=VALIDATION_ITERATIONS, type="number")
+        ], className="val-iterations"),
+        dbc.Button("Start", id="btn-start-val", n_clicks=0, outline=False, color="primary",
+                   className="btn-start-val"),
+        dbc.Button("Cancel", id="btn-cancel-val", n_clicks=0, outline=False, color="warning",
+                   className="btn-cancel-val"),
+        dcc.Store(id="val-directory"),
+        dcc.Store(id="val-state", data=0),
+        dcc.Store(id="val-finished", data=False),
+        dcc.Interval(id="val-interval", n_intervals=0, interval=INTERVAL_TIME * 1000),
+    ], className="val-controls-container")
+    val_controls = [slider_inputs, iterations_inputs]
     return val_controls
 
 
@@ -581,6 +599,7 @@ def get_lca_config(state_or_input):
 def get_mc_config(state_or_input):
     mc_config = dict(
         iterations=state_or_input('iterations', 'value'),
+        iterations_chunk=state_or_input('iterations-chunk', 'value'),
         seed=state_or_input("seed", "value"),
     )
     return mc_config
@@ -595,8 +614,9 @@ def get_lca_mc_config(state_or_input):
 
 def get_val_config(state_or_input):
     val_config = dict(
-        max_influential=state_or_input('val-max-influential', 'value'),
-        step_influential=state_or_input("val-step-influential", "value"),
-        iterations=state_or_input("val-iterations", "value"),
+        val_min=state_or_input('val-min', 'value'),
+        val_max=state_or_input('val-max', 'value'),
+        val_step=state_or_input("val-step", "value"),
+        val_iterations=state_or_input("val-iterations", "value"),
     )
     return val_config

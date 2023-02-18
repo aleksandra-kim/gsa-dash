@@ -21,7 +21,7 @@ from layout import (
     style_bars_in_datatable,
 )
 
-from backend.data import create_directory, collect_Y, get_Y_files, collect_XY, read_pickle
+from backend.data import create_directory, collect_Y, get_Y_files, collect_XY, read_pickle, get_val_state
 from backend.life_cycle_assessment import compute_deterministic_score
 from backend.monte_carlo import run_simulations_from_X_all
 from backend.sensitivity_analysis import (
@@ -29,7 +29,7 @@ from backend.sensitivity_analysis import (
 )
 from backend.validation import run_validation, collect_validation_results
 from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking, plot_validation
-from constants import ITERATIONS_CHUNKSIZE, INTERVAL_TIME, LINEARITY_THRESHOLD, GT_CUTOFF, GT_MAXCALC, PAGE_SIZE
+from constants import ITERATIONS, INTERVAL_TIME, LINEARITY_THRESHOLD, GT_CUTOFF, GT_MAXCALC, PAGE_SIZE
 
 # TODO
 # 1. add unit to activity amount
@@ -95,22 +95,22 @@ def compute_deterministic_score_wrapper(lca_config):
     Output("mc-state", "data"),
     inputs=dict(
         n_intervals=Input("mc-interval", "n_intervals"),
+        directory=Input("directory", "data"),
         score=Input("score", "children"),
     ),
     state=dict(
         unit=State("method-unit", "children"),
         mc_finished=State("mc-finished", "data"),
         mc_state=State("mc-state", "data"),
-        directory=State("directory", "data"),
         mc_config=get_mc_config(State),
     ),
 )
-def plot_simulations(n_intervals, score, unit, mc_finished, mc_state, directory, mc_config):
-    if score is None:
+def plot_simulations(n_intervals, directory, score, unit, mc_finished, mc_state, mc_config):
+    if score is None or directory is None:
         raise PreventUpdate
-    if "score" == ctx.triggered_id:
+    if "score" == ctx.triggered_id or "directory" == ctx.triggered_id:
         fig = plot_mc_simulations(score, unit)
-        return fig, dash.no_update, dash.no_update, dash.no_update
+        return fig, 0, dash.no_update, 0
     Y_files = get_Y_files(directory)
     if mc_finished or (len(Y_files) > mc_state):
         Y_data = collect_Y(Y_files)
@@ -131,9 +131,9 @@ def plot_simulations(n_intervals, score, unit, mc_finished, mc_state, directory,
 def create_directory_wrapper(n_clicks, lca_mc_config):
     if n_clicks == 0:
         raise PreventUpdate
-    iterations, seed = lca_mc_config.pop("iterations"), lca_mc_config.pop("seed")
+    iterations, iterations_chunk, seed = lca_mc_config.pop("iterations"), lca_mc_config.pop("iterations_chunk"), lca_mc_config.pop("seed")
     base_directory = create_directory(lca_mc_config)
-    directory = base_directory / f"iterations{iterations}_seed{seed}"
+    directory = base_directory / f"iterations{iterations}_chunk{iterations_chunk}_seed{seed}"
     directory.mkdir(parents=True, exist_ok=True)
     return str(directory)
 
@@ -142,14 +142,18 @@ def create_directory_wrapper(n_clicks, lca_mc_config):
     Output("mc-finished", "data"),
     inputs=dict(
         directory=Input("directory", "data"),
+        mc_config=get_mc_config(Input),
         n_clicks=State("btn-start-mc", "n_clicks"),
-        lca_mc_config=get_lca_mc_config(State),
+        lca_config=get_lca_config(State),
     )
 )
-def run_simulations_wrapper(directory, n_clicks, lca_mc_config):
+def run_simulations_wrapper(directory, mc_config, n_clicks, lca_config):
     if directory is None:
         raise PreventUpdate
-    run_simulations_from_X_all(directory, lca_mc_config, ITERATIONS_CHUNKSIZE)
+    if ctx.triggered_id in ["iterations", "iterations-chunk", "seed"]:
+        return False
+    lca_mc_config = {**lca_config, **mc_config}
+    run_simulations_from_X_all(directory, lca_mc_config)
     return True
 
 
@@ -200,7 +204,7 @@ def plot_sensitivity_results(n_intervals, mc_finished, directory, lca_config, un
         df_data = df.to_dict("records")
         contribution_column = f"Contribution \n {unit}"
         columns = [{"name": i if "Contribution" not in i else contribution_column, "id": i} for i in df.columns]
-        fig_linearity = plot_model_linearity(model_linearity, LINEARITY_THRESHOLD)
+        fig_linearity = plot_model_linearity(model_linearity, LINEARITY_THRESHOLD, ITERATIONS)
         return fig_linearity, df_data, columns, bar_styles_gsa + bar_styles_ca, sensitivity_indices
     else:
         return dash.no_update, dash.no_update, dash.no_update, dash.no_update, dash.no_update
@@ -216,17 +220,20 @@ def plot_sensitivity_results(n_intervals, mc_finished, directory, lca_config, un
         val_finished=State("val-finished", "data"),
         val_state=State("val-state", "data"),
         val_directory=State("val-directory", "data"),
+        val_min=State('val-min', 'value'),
+        val_max=State("val-max", "value")
     ),
 )
-def plot_validation_results(n_intervals, val_finished, val_state, val_directory):
-    print(ctx.triggered_id)
-    print(n_intervals, val_finished, val_state, val_directory)
-    # if "val-interval" == ctx.triggered_id:
-    #     fig = plot_validation(metric=metric)
-    #     return fig, dash.no_update
+def plot_validation_results(n_intervals, val_finished, val_state, val_directory, val_min, val_max):
+    if "val-interval" == ctx.triggered_id:
+        val_new_state = get_val_state(val_directory)
+        if val_finished or (val_new_state > val_state):
+            metric = collect_validation_results(val_directory)
+            fig = plot_validation(min_influential=val_min, max_influential=val_max, metric=metric)
+            return fig, val_new_state
     if val_finished:
         metric = collect_validation_results(val_directory)
-        fig = plot_validation(metric=metric)
+        fig = plot_validation(min_influential=val_min, max_influential=val_max, metric=metric)
         return fig, dash.no_update
     else:
         return dash.no_update, dash.no_update
@@ -271,12 +278,23 @@ def run_validation_wrapper(val_directory, n_clicks, sensitivity_indices, val_con
     Input("val-finished", "data"),
 )
 def toggle_val_interval(n_clicks, val_finished):
-    print("here", ctx.triggered_id)
     if val_finished:
         time.sleep(INTERVAL_TIME)
         return None
     if n_clicks > 0:
         return 1e5
+
+
+# @app.callback(
+#     Output("loading", "children"),
+#     Input("btn-start-mc", "n_clicks"),
+#     Input("mc-finished", "data"),
+# )
+# def show_spinner(n_clicks, mc_finished):
+#     if n_clicks > 0 and not mc_finished:
+#         return dbc.Spinner
+#     else:
+#         return ""
 
 
 if __name__ == '__main__':

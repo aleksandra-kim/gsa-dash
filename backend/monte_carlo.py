@@ -134,24 +134,23 @@ def get_dps_without_foreground_background_uncertainty(method):
     return dps
 
 
-def run_simulations_from_X_all(directory, lca_mc_config, chunksize):
-    project, database, activity, amount, method, iterations, seed = lca_mc_config["project"], lca_mc_config["database"], \
-                                                                    lca_mc_config["activity"], lca_mc_config["amount"], \
-                                                                    lca_mc_config["method"], \
-                                                                    lca_mc_config["iterations"], lca_mc_config["seed"]
+def run_simulations_from_X_all(directory, lca_mc_config):
+    project, database, activity, amount, method, iterations, iterations_chunk, seed = lca_mc_config["project"], \
+        lca_mc_config["database"], lca_mc_config["activity"], lca_mc_config["amount"],  lca_mc_config["method"], \
+        lca_mc_config["iterations"], lca_mc_config["iterations_chunk"], lca_mc_config["seed"]
     directory = Path(directory)
     np.random.seed(seed)
-    n_chunks = int(np.ceil(iterations/chunksize))
+    n_chunks = int(np.ceil(iterations/iterations_chunk))
     chunk_seeds = np.random.randint(1, np.iinfo(np.int32).max, n_chunks)
     fpI = directory / f"indices.pickle"
     for i in range(n_chunks):
         fpY = directory / f"Y{i:03d}.json"  # TODO: 3 is the number of leading zeros in file names, at the moment hardcoded
         fpX = directory / f"X{i:03d}.json"
         if i == n_chunks - 1:
-            chunksize = int(min(chunksize, iterations - (n_chunks-1)*chunksize))
+            iterations_chunk = int(min(iterations_chunk, iterations - (n_chunks-1)*iterations_chunk))
         if (not fpY.exists()) or (not fpI.exists()):
             input_indices, input_data, mc_scores = run_simulations_from_X_chunk(
-                project, database, activity, amount, method, chunksize, chunk_seeds[i]
+                project, database, activity, amount, method, iterations_chunk, chunk_seeds[i]
             )
             write_json(mc_scores, fpY)
             write_json(input_data, fpX)

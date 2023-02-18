@@ -77,6 +77,13 @@ def collect_XY(directory):
     return np.array(X), np.array(Y)
 
 
+def get_val_state(val_directory):
+    val_directory = Path(val_directory)
+    files = list(val_directory.iterdir())
+    val_files = sorted([f for f in files if "Yinf" in f.name])
+    return len(val_files)
+
+
 def collect_Y_validation(val_directory):
     val_directory = Path(val_directory)
     files = list(val_directory.iterdir())
