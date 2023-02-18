@@ -31,8 +31,6 @@ from backend.validation import run_validation, collect_validation_results
 from make_figures import plot_mc_simulations, plot_model_linearity, create_table_gsa_ranking, plot_validation
 from constants import ITERATIONS, INTERVAL_TIME, LINEARITY_THRESHOLD, GT_CUTOFF, GT_MAXCALC, PAGE_SIZE
 
-# TODO
-# 1. add unit to activity amount
 
 app = Dash(
     __name__,
