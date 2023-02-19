@@ -168,7 +168,7 @@ def run_simulations_wrapper(directory, mc_config, n_clicks, lca_config):
 def toggle_mc_interval(n_clicks, mc_finished):
     if mc_finished:
         time.sleep(INTERVAL_TIME)
-        return None
+        return 2
     if n_clicks > 0:
         return 1e5
 

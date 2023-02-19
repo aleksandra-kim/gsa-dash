@@ -23,7 +23,6 @@ def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, ite
     ))
     layout = get_figure_layout()
     layout["yaxis"]["title"].update(dict(text="Frequency"))
-    layout["yaxis"]["range"] = [-int(0.02*iterations), int(0.08*iterations)]
     layout["height"] = 400
     layout["legend"].update(dict(
         x=0.5, xanchor="center",
@@ -31,6 +30,7 @@ def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, ite
         orientation="h"),
     )
     layout["margin"].update(dict(l=50, b=50, r=0, t=0))
+    ymax = int(0.08*iterations)
     if deterministic_score is not None:
         deterministic_score = float(deterministic_score)
         data[0]["x"] = [deterministic_score]
@@ -45,10 +45,12 @@ def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, ite
         num_bins = 60
         bins_ = np.linspace(min(mc_scores), max(mc_scores), num_bins, endpoint=True)
         freq, bins = np.histogram(mc_scores, bins=bins_)
+        ymax = max(ymax, max(freq)) + 2
         data[1]["x"] = bins
         data[1]["y"] = freq
         unit_str = f", {unit}"
 
+    layout["yaxis"]["range"] = [-max(int(0.02*iterations), 2), ymax]
     layout["xaxis"]["title"].update(dict(text=f"LCIA scores{unit_str}"))
 
     return dict(data=data, layout=layout)

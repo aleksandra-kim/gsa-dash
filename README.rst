@@ -49,7 +49,7 @@ How to run this app
 7. Stop the program with ``CTRL+C`` or ``CTRL+Z`` commands.
 
 8. If you run it again, and see the message Port 8050 is in use by another program,
-then find the PID of the process and kill it:
+then find the PID of the process and kill it (very elegant, I know):
 
 .. code-block:: bash
 

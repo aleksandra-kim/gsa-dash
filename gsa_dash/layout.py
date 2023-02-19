@@ -246,8 +246,8 @@ def get_tab_uncertainty_propagation():
                     '''
                     In statistics, propagation of uncertainty (or propagation of error) is the effect of
                     inputs' uncertainties on the uncertainty of a function $y = f(\\mathbf{x}) = f(x_1, x_2, ..., x_k)$ 
-                    based on them. It can be conducted analytically using formulas or numerically with `Monte Carlo (MC) 
-                    simulations`. In LCA, it is common to use the latter. 
+                    based on them. It can be conducted analytically using formulas or numerically with __Monte Carlo (MC) 
+                    simulations__. In LCA, it is common to use the latter. 
                     ''',
                     mathjax=True, style={"marginBottom": "16px"}
                 ),
@@ -260,7 +260,8 @@ def get_tab_uncertainty_propagation():
                 dcc.Markdown(
                     '''
                     For each simulation, random samples are drawn from the predefined input distributions, and 
-                    LCIA scores are computed. The user can define number of `iterations N` and `random seed` to ensure 
+                    LCIA scores are computed. The user can define total number of __iterations N__, __iterations chunk__ 
+                    that defines how often the figure on the right is updated, and __random seed__ to ensure 
                     reproducibility of random samples.                     
                     ''',
                     style={"marginBottom": "16px"}
@@ -328,7 +329,7 @@ def get_tab_sensitivity_analysis():
                 html.H2("Global sensitivity analysis"),
                 dcc.Markdown(
                     '''
-                    For each model input, we compute _sensitivity index_ - quantitative measure of input's importance. 
+                    For each model input, we compute __sensitivity index__ - quantitative measure of input's importance. 
                     Widely used indices are correlation coefficients, Sobol indices, Shapley values, delta indices. 
                     ''',
                     style={"marginBottom": "16px"}
@@ -349,7 +350,7 @@ def get_tab_sensitivity_analysis():
                 dcc.Markdown(
                     '''
                     Which GSA method to use depends on its underlying assumptions, one of the important one being the 
-                    `degree of model linearity`.
+                    __degree of model linearity__.
                     '''
                 ),
             ]), width=5, align="start"),
@@ -365,7 +366,7 @@ def get_tab_sensitivity_analysis():
                 dcc.Markdown(
                     '''
                     Linearity of a particular model can be determined with standardized linear regression coefficients. 
-                    If linear regression explains LCA model outcomes well (linearity $>$ chosen `linearity threshold`), 
+                    If linear regression explains LCA model outcomes well (linearity $>$ chosen __linearity threshold__), 
                     then the model is considered sufficiently linear and correlation coefficients are used. Otherwise, 
                     the dashboard computes feature importance indices from the gradient boosted tree method.
                     ''',

@@ -305,3 +305,11 @@ tr {
 .rc-slider-rail {
     color: red !important;
 }
+
+select {
+    white-space: normal !important;
+}
+
+.Select-input {
+    white-space: pre-wrap !important;
+}
