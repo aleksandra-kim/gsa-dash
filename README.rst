@@ -24,14 +24,19 @@ How to run this app
 
 .. code-block:: bash
 
-   $ conda create -n gsa-dashboard
+   $ conda create -y -n gsa-dashboard python=3.10
    $ conda activate gsa-dashboard
 
-4. Install the requirements:
+4. Install the packages:
 
 .. code-block:: bash
 
-   $ pip install -r requirements.txt
+   $ conda install -y -c conda-forge -c cmutel brightway25
+   $ conda install -y -c conda-forge intel-openmp=2021.4
+   $ conda install -y -c anaconda scikit-learn
+   $ conda install -y -c plotly plotly=5.13.0
+   $ conda install -y -c conda-forge dash dash-bootstrap-components celery
+   $ pip install dash[diskcache]
 
 5. Run the app:
 
@@ -41,13 +46,15 @@ How to run this app
 
 6. View the app by opening `<http://127.0.0.1:8050>`_ in a browser.
 
-7. To stop the program, you might need to find its PID and then kill it:
+7. Stop the program with ``CTRL+C`` or ``CTRL+Z`` commands.
+
+8. If you run it again, and see the message Port 8050 is in use by another program,
+then find the PID of the process and kill it:
 
 .. code-block:: bash
 
    $ lsof -i tcp:8050
    $ kill -9 <PID>
-
 
 Known issues
 ============
@@ -62,6 +69,8 @@ Known issues
 - No unit in the activity amount in the top menu
 - No pre-commit hooks, tests and docs
 - Could not make it a python package so far
+- LCIA scores are not computed in parallel
+- Filtering in tha GSA table mixes up the alternating row colors
 
 .. _pyscaffold-notes:
 
