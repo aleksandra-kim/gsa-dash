@@ -3,7 +3,6 @@ import bw2calc as bc
 import bw_processing as bwp
 import numpy as np
 from pathlib import Path
-import math
 
 # Local files
 from .data import write_json, write_pickle

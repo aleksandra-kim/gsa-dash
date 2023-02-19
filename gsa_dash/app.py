@@ -107,12 +107,12 @@ def plot_simulations(n_intervals, directory, score, unit, mc_finished, mc_state,
     if score is None:
         raise PreventUpdate
     if "score" == ctx.triggered_id:
-        fig = plot_mc_simulations(score, unit)
+        fig = plot_mc_simulations(score, unit, iterations=ITERATIONS)
         return fig, 0, dash.no_update, 0
     if directory is None:
         raise PreventUpdate
     if "directory" == ctx.triggered_id:
-        fig = plot_mc_simulations(score, unit)
+        fig = plot_mc_simulations(score, unit, iterations=ITERATIONS)
         return fig, 0, dash.no_update, 0
     Y_files = get_Y_files(directory)
     if mc_finished or (len(Y_files) > mc_state):

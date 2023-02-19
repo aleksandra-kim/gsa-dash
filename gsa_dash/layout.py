@@ -235,7 +235,7 @@ def get_tab_motivation():
 
 
 def get_tab_uncertainty_propagation():
-    fig = plot_mc_simulations()
+    fig = plot_mc_simulations(iterations=ITERATIONS)
     mc_controls = get_mc_controls()
     progress = get_progress()
     tab = html.Div([

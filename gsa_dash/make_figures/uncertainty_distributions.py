@@ -2,13 +2,12 @@ import numpy as np
 
 # Local files
 from .utils import get_figure_layout, color_bs_red
-from constants import ITERATIONS
 
 color_deterministic_score = color_bs_red
 opacity = 0.7
 
 
-def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, iterations=ITERATIONS):
+def plot_mc_simulations(deterministic_score=None, unit=None, mc_scores=None, iterations=None):
     data = []
     unit_str = ""
     data.append(dict(
