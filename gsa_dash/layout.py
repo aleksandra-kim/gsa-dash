@@ -90,9 +90,9 @@ def get_tabs():
     tab4_content = get_tab_gsa_validation()
     # tab5_content = get_tab_summary()
     tabs = dbc.Tabs(
-        active_tab="tab-propagation",
+        active_tab="tab-motivation",
         children=[
-            dbc.Tab(tab1_content, className="tab-content", label="Motivation"),
+            dbc.Tab(tab1_content, className="tab-content", label="Motivation", tab_id="tab-motivation"),
             dbc.Tab(tab2_content, className="tab-content", label="Uncertainty propagation", tab_id="tab-propagation"),
             dbc.Tab(tab3_content, className="tab-content", label="Global sensitivity analysis"),
             dbc.Tab(tab4_content, className="tab-content", label="GSA validation"),

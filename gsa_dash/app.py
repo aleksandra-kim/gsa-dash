@@ -1,4 +1,4 @@
-# Run this app with `python application.py` and
+# Run this app with `python app.py` and
 # visit http://127.0.0.1:8050/ in your web browser.
 import bw2data as bd
 from pathlib import Path
@@ -104,9 +104,14 @@ def compute_deterministic_score_wrapper(lca_config):
     ),
 )
 def plot_simulations(n_intervals, directory, score, unit, mc_finished, mc_state, mc_config):
-    if score is None or directory is None:
+    if score is None:
         raise PreventUpdate
-    if "score" == ctx.triggered_id or "directory" == ctx.triggered_id:
+    if "score" == ctx.triggered_id:
+        fig = plot_mc_simulations(score, unit)
+        return fig, 0, dash.no_update, 0
+    if directory is None:
+        raise PreventUpdate
+    if "directory" == ctx.triggered_id:
         fig = plot_mc_simulations(score, unit)
         return fig, 0, dash.no_update, 0
     Y_files = get_Y_files(directory)
@@ -283,6 +288,7 @@ def toggle_val_interval(n_clicks, val_finished):
         return 1e5
 
 
+# TODO add spinner
 # @app.callback(
 #     Output("loading", "children"),
 #     Input("btn-start-mc", "n_clicks"),
@@ -297,18 +303,3 @@ def toggle_val_interval(n_clicks, val_finished):
 
 if __name__ == '__main__':
     app.run_server(port=8050, debug=True, processes=4, threaded=False)
-    # S = [4.603434194207573e-07, 2.2249683869030188e-05, 3.9360692583675376e-05, 6.829567686821097e-06, 0.00015842636669209997, 3.551273901176164e-05, 0.000184551181813614, 7.054943648507228e-05, 0.00018215709387586402, 7.867614387276886e-05, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.00033280917001736877, 2.584947636800068e-05, 0.10972620439924098, 0.2724981409967113, 0.00018457405848154113, 0.0012288022072621477, 2.1383620949436447e-05, 0.0001348117550599159, 7.552255360738365e-05, 0.0009538848457231237, 0.007721988479436372, 0.013300715865253408, 0.0008915836482620274, 0.000185372391008026, 1.4224811226337263e-05, 0.0001195778767520251, 9.187438700718488e-05, 0.0014423581429162105, 0.00015401592493782812, 0, 0.0009701767380501706, 6.890766349306294e-05, 0.00038529065074951216, 0.0004131647479950618, 0, 0.022048581800915297, 0, 0.11700268404946852, 0, 0.1463808191369305, 0, 0.027037078020182233, 0, 0.03119299658358151, 0, 0.03255405434807512, 0, 0.024937797544296134, 0, 0.03472719724355662, 0, 0.08358332603421352, 0, 0.031620923017200125, 0, 0.036831060395590504, 0, 6.302513115373807e-05, 3.839752982900482e-05, 6.5355717002662834e-06, 3.4695276843202386e-06, 2.394251970391751e-07, 6.3514838825418516e-09, 5.456150321608011e-05, 2.727171983956564e-07, 7.237749383616146e-09, 1.829328180860258e-05, 0.00016449301164658158, 1.279803864025152e-05, 1.3748388637538642e-06]
-    # directory = Path("/home/aleksandrakim/gsa-dash-cache/8a7c0f6422780773/iterations8000_seed1234567/validation")
-    # val_config = dict(
-    #     max_influential=80,
-    #     step_influential=40,
-    #     iterations=10,
-    # )
-    # lca_config = dict(
-    #     project="Uncertainties Chaerhan",
-    #     database="Chaerhan_38",
-    #     activity="Rotary dryer, CN",
-    #     amount=1,
-    #     method="IPCC 2013, climate change, GWP 100a",
-    # )
-    # run_validation(directory, S, val_config, lca_config)

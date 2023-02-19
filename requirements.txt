@@ -1,0 +1,7 @@
+brightway25
+plotly
+dash
+dash-bootstrap-components
+pandas
+scikit-learn
+dash[diskcache]

@@ -1,6 +1,6 @@
 import bw2data as bd
 import bw2io as bi
-from gsa_dash.application import app
+from gsa_dash.app import app
 
 
 project = f"Uncertainties Chaerhan"

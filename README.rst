@@ -2,16 +2,66 @@
     :alt: Project generated with PyScaffold
     :target: https://pyscaffold.org/
 
+==============================================================
+Global Sensitivity Analysis of Life Cycle Assessment Dashboard
+==============================================================
+
+About this app
 ==============
-gsa_dash
-==============
+This dashboard attempts to combine the motivation behind Global Sensitivity Analysis
+of Life Cycle Assessment, with necessary computations and visualization of the results -
+all in one place.
+
+Note that the app is not well tested, but it does work on the example Brightway project
+"Uncertainties Chaerhan" that you can import using
+`dev/import_chaerhan.py <https://github.com/aleksandra-kim/gsa_dash/blob/main/dev/import_chaerhan.py>`_
+
+How to run this app
+===================
+1. Clone the repository.
+2. Open terminal inside the root folder.
+3. Create and activate new virtual environment. For example, with ``conda``:
+
+.. code-block:: bash
+
+   $ conda create -n gsa-dashboard
+   $ conda activate gsa-dashboard
+
+4. Install the requirements:
+
+.. code-block:: bash
+
+   $ pip install -r requirements.txt
+
+5. Run the app:
+
+.. code-block:: bash
+
+   $ python gsa_dash/app.py
+
+6. View the app by opening `<http://127.0.0.1:8050>`_ in a browser.
+
+7. To stop the program, you might need to find its PID and then kill it:
+
+.. code-block:: bash
+
+   $ lsof -i tcp:8050
+   $ kill -9 <PID>
 
 
-    Add a short description here!
-
-
-A longer description of your project goes here...
-
+Known issues
+============
+- Cancel buttons do not work
+- Contributions for biosphere and characterization are not computed
+- GSA for background is not possible
+- Gradient boosting hasn't been implemented yet
+- No loading spinner to indicate in the top menu that there running computations
+- No summary tab to summarize the whole analysis
+- No tab on uncertainty quantification in inputs, eg using pedigree approach
+- More plots for validation are potentially needed
+- No unit in the activity amount in the top menu
+- No pre-commit hooks, tests and docs
+- Could not make it a python package so far
 
 .. _pyscaffold-notes:
 
