@@ -12,9 +12,9 @@ This dashboard attempts to combine the motivation behind Global Sensitivity Anal
 of Life Cycle Assessment, with necessary computations and visualization of the results -
 all in one place.
 
-The dashboard has been implemented with (Dash)[https://dash.plotly.com/] - framework for
+The dashboard has been implemented with `Dash <https://dash.plotly.com/>`_ - framework for
 building data apps that was written on top of Plotly.js and React.js. Non enterprise
-version of Dash has the [MIT license](https://github.com/plotly/dash/blob/dev/LICENSE).
+version of Dash has the `MIT license <https://github.com/plotly/dash/blob/dev/LICENSE>`_.
 
 Note that the app is not well tested, but it does work on the example Brightway project
 "Uncertainties Chaerhan" that you can import using
