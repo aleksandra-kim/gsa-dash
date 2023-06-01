@@ -12,6 +12,10 @@ This dashboard attempts to combine the motivation behind Global Sensitivity Anal
 of Life Cycle Assessment, with necessary computations and visualization of the results -
 all in one place.
 
+The dashboard has been implemented with (Dash)[https://dash.plotly.com/] - framework for
+building data apps that was written on top of Plotly.js and React.js. Non enterprise
+version of Dash has the [MIT license](https://github.com/plotly/dash/blob/dev/LICENSE).
+
 Note that the app is not well tested, but it does work on the example Brightway project
 "Uncertainties Chaerhan" that you can import using
 `dev/import_chaerhan.py <https://github.com/aleksandra-kim/gsa_dash/blob/main/dev/import_chaerhan.py>`_
@@ -36,7 +40,7 @@ How to run this app
    $ conda install -y -c anaconda scikit-learn
    $ conda install -y -c plotly plotly=5.13.0
    $ conda install -y -c conda-forge dash dash-bootstrap-components celery
-   $ pip install dash[diskcache]
+   $ pip install "dash[diskcache]"
 
 5. Run the app:
 
@@ -71,6 +75,8 @@ Known issues
 - Could not make it a python package so far
 - LCIA scores are not computed in parallel
 - Filtering in tha GSA table mixes up the alternating row colors
+- No citations, references, links, etc
+- Links to images are not local, hence won't work without internet connection
 
 .. _pyscaffold-notes:
 
