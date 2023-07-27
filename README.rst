@@ -60,24 +60,6 @@ then find the PID of the process and kill it (very elegant, I know):
    $ lsof -i tcp:8050
    $ kill -9 <PID>
 
-Known issues
-============
-- Cancel buttons do not work
-- Contributions for biosphere and characterization are not computed
-- GSA for background is not possible
-- Gradient boosting hasn't been implemented yet
-- No loading spinner to indicate in the top menu that there running computations
-- No summary tab to summarize the whole analysis
-- No tab on uncertainty quantification in inputs, eg using pedigree approach
-- More plots for validation are potentially needed
-- No unit in the activity amount in the top menu
-- No pre-commit hooks, tests and docs
-- Could not make it a python package so far
-- LCIA scores are not computed in parallel
-- Filtering in tha GSA table mixes up the alternating row colors
-- No citations, references, links, etc
-- Links to images are not local, hence won't work without internet connection
-
 .. _pyscaffold-notes:
 
 Note
