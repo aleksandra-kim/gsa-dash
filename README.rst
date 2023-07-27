@@ -20,12 +20,20 @@ Note that the app is not well tested, but it does work on the example Brightway 
 "Uncertainties Chaerhan" that you can import using
 `dev/import_chaerhan.py <https://github.com/aleksandra-kim/gsa_dash/blob/main/dev/import_chaerhan.py>`_
 
-### Visualizations
-![mc](https://raw.githubusercontent.com/aleksandra-kim/gsa_dash/main/gsa_dash/images/mc.png)
-![gsa](https://raw.githubusercontent.com/aleksandra-kim/gsa_dash/main/gsa_dash/images/gsa.png)
+Presentation video
+==================
+`Video <https://youtu.be/wiyNC4-BKwk>`_ submitted for the `Depart de Sentier visualization contest <https://github.com/Depart-de-Sentier/visualization-contest-2022>`_.
 
-### Presentation video
-[Video](https://youtu.be/wiyNC4-BKwk)
+Visualizations
+==============
+
+.. image:: https://raw.githubusercontent.com/aleksandra-kim/gsa_dash/main/gsa_dash/images/mc.png
+  :width: 100%
+  :alt: Monte Carlo simulations
+
+.. image:: https://raw.githubusercontent.com/aleksandra-kim/gsa_dash/main/gsa_dash/images/gsa.png
+  :width: 100%
+  :alt: Global sensitivity analysis
 
 How to run this app
 ===================
